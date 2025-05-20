@@ -7,8 +7,8 @@ body {
 
 #title {
     margin-top: 6%;
-    font-size: 2em;
-    letter-spacing: 3px;
+    font-size: 3em;
+    letter-spacing: 10px;
 }
 
 #signup-container {
@@ -16,12 +16,11 @@ body {
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    margin: 1% 10% 10% 10%;
-    padding: 4em 2em;
+    padding: 3em 2em;
     width: 75%;
-    border: #949392 solid 4px;
     border-radius: 8px;
     background-color: #66615E;
+    box-shadow: 0px 0px 15px 10px #949392;
 }
 
 #signup-options {
@@ -31,8 +30,21 @@ body {
     width: 75%;
 }
 
+#signup-options input {
+    font-size: 1em;
+    height: 2em;
+    padding: 0.3em;
+}
+
 #buttons {
     display: flex;
-    gap: 2em;
+    gap: 4em;
     margin: 4em 0px 0px 1em;
+}
+
+#buttons button {
+    background-color: #949392;
+    color: #F2F0EF;
+    padding: 0.5em 2em;
+    font-size: 1.3em;
 }
