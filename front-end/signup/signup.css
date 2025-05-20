@@ -1,11 +1,38 @@
-#signup-container {
+body {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
 
+#title {
+    margin-top: 6%;
+    font-size: 2em;
+    letter-spacing: 3px;
+}
+
+#signup-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    margin: 1% 10% 10% 10%;
+    padding: 4em 2em;
+    width: 75%;
+    border: #949392 solid 4px;
+    border-radius: 8px;
+    background-color: #66615E;
 }
 
 #signup-options {
-
+    display: flex;
+    flex-direction: column;
+    gap: 1em;
+    width: 75%;
 }
 
 #buttons {
-
+    display: flex;
+    gap: 2em;
+    margin: 4em 0px 0px 1em;
 }
