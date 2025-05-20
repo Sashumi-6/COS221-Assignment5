@@ -5,11 +5,11 @@
     $req = json_decode(file_get_contents("php://input"), true);
     $dbConn = new Database();
     $status = false;
-    $msg = null;
+    $message = null;
     if(json_last_error() !== JSON_ERROR_NONE){
         $GLOBALS['code'] = 400;
         $status = false;
-        $msg = 'Please check that body is valid JSON';
+        $message = 'Please check that body is valid JSON';
     }
 
     // function that sets http status code, and sends response
