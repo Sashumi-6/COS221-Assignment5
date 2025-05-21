@@ -73,17 +73,129 @@
     margin: 2em;
 }
 
-#categories-container {
+#side-content {
+    display: flex;
+    flex-direction: column;
+    width: 20%;
+    border-radius: 7px;
+    gap: 1em;
+}
+
+.side-content-display {
+    display: flex;
+    flex-direction: column;
     background-color: #C9C8C7;
     padding: 0.3em;
-    width: 20%;
+    border-radius: 7px;
 }
 
-#products-container {
-    background-color: #949392;
-    width: 80%;
+#side-content a#title, .main-content-display a#title {
+    align-self: center;
+    justify-self: center;
+    font-size: 1.5em;
+    padding: 0.2em;
+    margin-top: 0.4em;
+    margin-bottom: 0.2em;
+    color: #1A1A1A;
 }
 
-#products-container .product {
+#list-items {
+    display: flex;
+    gap: 0.2em;
+    flex-direction: column;
+}
+
+#list-items input {
+    width: 78%;
+    margin-left: 2px;
+    border-radius: 3px;
+    border: none;
+}
+
+#list-items input:focus-visible {
+    outline: none;
+}
+
+#list-items .item {
     background-color: #66615E;
+    border-radius: 5px;
+    padding: 0.2em;
+}
+
+#list-items a, #list-items button {
+    color: #F2F0EF;
+    padding: 0.2em;
+}
+
+#list-items .buttons button {
+    width: 3.5em;
+}
+
+.buttons {
+    float: right;
+    display: flex;
+    gap: 0.2em;
+}
+
+.buttons button {
+    font-family: "Coda", system-ui;
+    border: none;
+    border-radius: 3px;
+    background-color: #C9C8C7;
+    color: #3B3B3B !important;
+    transition: 0.2s;
+    cursor: pointer;
+}
+
+.buttons button:hover {
+    background-color: #3B3B3B;
+    color: #F2F0EF !important;
+}
+
+.buttons button:active {
+    transform: translateY(1px);
+}
+
+#main-content {
+    display: flex;
+    flex-direction: column;
+    width: 80%;
+    gap: 1.5em;
+}
+
+.main-content-display {
+    display: flex;
+    flex-direction: column;
+    gap: 1em;
+    background-color: #949392;
+    border-radius: 7px;
+    padding: 0.8em;
+}
+
+.product, .user {
+    background-color: #66615E;
+    border-radius: 4px;
+}
+
+#heading, .product, .user {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-evenly;
+    padding: 0.5em 0.5em;
+}
+
+#heading a, .product a, .user a {
+    display: flex;
+    justify-content: center;
+    width: 15%;
+    padding: 0.5em 0px;
+}
+
+#heading a {
+    background-color: #c9c8c7ae;
+    border-radius: 8px;
+}
+
+.hidden {
+    display: none;
 }

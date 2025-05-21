@@ -10,6 +10,9 @@
     <link rel="stylesheet" href="admin.css">
     <link rel="stylesheet" href="../global/styles.css">
 
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <script src="admin.js"></script>
+
     <title>[Admin View]</title>
 </head>
 <body>
@@ -28,13 +31,70 @@
         </div>
 
         <div id="content-container">
-            <div id="categories-container">
-                <i>test</i>
+            <div id="side-content">
+                <div id="categories-container" class="side-content-display">
+                    <a id="title" class="roboto-normal">Categories</a>
+                    <div id="list-items">
+                        <div id="add-category" class="item">
+                            <input id="add-category" type="text">
+                            <div class="buttons">
+                                <button id="add">Add</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div id="stockist-container" class="side-content-display">
+                    <a id="title">Stockists</a>
+                    <div id="list-items">
+                        <div id="add-stockist" class="item">
+                            <input id="add-stockist" type="text">
+                            <div class="buttons">
+                                <button id="add">Add</button>
+                            </div>
+                        </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="main-content">
+            <!-- Maybe click on a thing to edit it and then click UPC to be redirected to the product? -->
+            <div id="products-container" class="main-content-display">
+                <a id="title">PRODUCTS</a>
+                <div id="heading">
+                    <a>UPC</a>
+                    <a>Name</a>
+                    <a>Description</a>
+                    <a>Category</a>
+                    <a>Brand</a>
+                    <a>Supplier</a>
+                    <button style="visibility: hidden;">Delete</button>
+                </div>
+                <div class="product">
+                    <a>UPC</a>
+                    <a>Name</a>
+                    <a>Description</a>
+                    <a>Category</a>
+                    <a>Brand</a>
+                    <a>Supplier</a>
+                    <div class="buttons"><button>Delete</button></div>
+                </div>
             </div>
 
-            <div id="products-container">
-                <div class="product">
-                    <i>test</i>
+            <div id="users-container" class="main-content-display">
+                <a id="title">USERS</a>
+                <div id="heading">
+                    <a>ID</a>
+                    <a>First Name</a>
+                    <a>Last Name</a>
+                    <a>Email</a>
+                    <button style="visibility: hidden;">Delete</button>
+                </div>
+                <div class="user">
+                    <a>ID</a>
+                    <a>First Name</a>
+                    <a>Last Name</a>
+                    <a>Email</a>
+                    <div class="buttons"><button>Delete</button></div>
                 </div>
             </div>
         </div>
