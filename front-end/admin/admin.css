@@ -1,0 +1,89 @@
+#admin-container {
+    display: flex;
+    flex-direction: column;
+}
+
+#top-bar {
+    background-image: url(../img/low-poly-grid-haikei.svg);
+    background-color: #1A1A1A;
+    background-blend-mode: overlay;
+    padding: 1em 1.5em;
+}
+
+#top-bar .component {
+    color: #A1A1A1;
+    font-size: 1.2em;
+    padding: 0.3em;
+}
+
+#filter-options-container {
+    float: left;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 0em 1em;
+    gap: 1.1em;
+}
+
+#filter-options-container a {
+    display: block;
+    position: relative;
+    transition: 0.3s;
+    cursor: pointer;
+    border-radius: 8px;
+}
+
+#filter-options-container a::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 0.1em;
+    background-color: #66615E;
+    opacity: 1;
+    transform: scale(0);
+    transform-origin: center;
+    transition: opacity 300ms, transform 300ms;
+}
+
+#filter-options-container a:hover {
+    color: #C9C8C7;
+}
+
+#filter-options-container a:hover::after,
+#filter-options-container a:active::after {
+    transform: scale(1);
+}
+
+#search-container {
+    float: right;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#search-container #bar {
+    border: none;
+}
+
+#content-container {
+    display: flex;
+    gap: 1em;
+    margin: 2em;
+}
+
+#categories-container {
+    background-color: #C9C8C7;
+    padding: 0.3em;
+    width: 20%;
+}
+
+#products-container {
+    background-color: #949392;
+    width: 80%;
+}
+
+#products-container .product {
+    background-color: #66615E;
+}

@@ -1,7 +1,14 @@
+OFF WHITE : backgrounds
 #F2F0EF
 #C9C8C7
 #949392
 #66615E
+
+CHARCOAL : font colours
+#A1A1A1
+#4A4A4A
+#3B3B3B
+#1A1A1A
 
 // TO ADD STYLES:
 <link rel="preconnect" href="https://fonts.googleapis.com">
