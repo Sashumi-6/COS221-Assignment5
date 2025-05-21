@@ -1,3 +1,96 @@
+body {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background-image: url('img/grey.png');
+    background-repeat:no-repeat;
+    background-size:cover;
+}
+
+#title {
+    color: #494644;
+    margin-top: 6%;
+    font-size: 3em;
+    letter-spacing: 10px;
+}
+
 #login-container {
-    background-color: blue;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 3em 2em;
+    width: 30%;
+    height: 80%;
+    border-radius: 8px;
+    background-color: #66615E;
+    box-shadow: 0px 0px 15px 10px #949392;
+}
+
+#login-options {
+    display: flex;
+    flex-direction: column;
+    gap: 2.5em;
+    width: 75%;
+}
+
+#login-options input {
+    font-size: 1em;
+    height: 2em;
+    padding: 0.3em;
+}
+
+#buttons {
+    display: flex;
+    gap: 4em;
+    margin: 3em 20px 0px 1em;
+}
+
+#buttons button {
+    background-color: #949392;
+    color: #F2F0EF;
+    padding: 0.5em 2em;
+    font-size: 1.3em;
+}
+
+.buttons {
+  position: relative;
+  font-size: 1.875rem;
+  padding: 0.75rem 2rem;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: all 250ms;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.buttons-classic {
+  background-color: #f0f0f0;
+  color: #242424;
+  border-radius: 0.5rem;
+  box-shadow: 
+    inset 0 1px 0 0 #f4f4f4,
+    0 1px 0 0 #efefef,
+    0 2px 0 0 #ececec,
+    0 4px 0 0 #e0e0e0,
+    0 5px 0 0 #dedede,
+    0 6px 0 0 #dcdcdc,
+    0 7px 0 0 #cacaca,
+    0 7px 8px 0 #cecece;
+}
+
+.buttons-classic:hover {
+  transform: translateY(4px);
+  box-shadow: 
+    inset 0 1px 0 0 #f4f4f4,
+    0 1px 0 0 #efefef,
+    0 1px 0 0 #ececec,
+    0 2px 0 0 #e0e0e0,
+    0 2px 0 0 #dedede,
+    0 3px 0 0 #dcdcdc,
+    0 4px 0 0 #cacaca,
+    0 4px 6px 0 #cecece;
 }

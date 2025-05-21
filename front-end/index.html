@@ -4,18 +4,21 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="login.css">
-    <link re="stylesheet" href="global/">
+    <link rel="stylesheet" href="global/styles.css">
 
     <title>[Login Page]</title>
 </head>
 <body>
+    <p id="title" class="roboto-normal">LOG IN</p>
     <div id="login-container">
         <div id="login-options">
-            
+            <input class="roboto-normal" autocomplete="on" type="text" name="username" id="username-input" placeholder="Username">
+            <input class="roboto-normal" type="password" name="password" id="password-input" placeholder="Password">
         </div>
 
-        <div id="login-buttons">
-
+        <div id="buttons">
+            <button class="buttons buttons-classic" id="login-button">Login</button>
+             <button class="buttons buttons-classic" id="goback-button">Go back</button>
         </div>
     </div>
 </body>
