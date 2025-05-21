@@ -3,13 +3,13 @@ body {
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    background-image: url('img/grey.png');
-    background-repeat:no-repeat;
-    background-size:cover;
+    background-image: url('img/blob-login.svg');
+    background-repeat: no-repeat;
+    background-size: cover;
 }
 
 #title {
-    color: #494644;
+    color: #F2F0EF;
     margin-top: 6%;
     font-size: 3em;
     letter-spacing: 10px;
