@@ -184,16 +184,23 @@
     padding: 0.5em 0.5em;
 }
 
-#heading a, .product a, .user a {
-    display: flex;
-    justify-content: center;
+.product a, .user a {
+    display: block;
     width: 15%;
     padding: 0.5em 0px;
+
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 #heading a {
     background-color: #c9c8c7ae;
     border-radius: 8px;
+    display: flex;
+    justify-content: center;
+    width: 15%;
+    padding: 0.5em 0px;
 }
 
 .hidden {
