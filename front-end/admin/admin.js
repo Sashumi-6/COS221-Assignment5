@@ -5,7 +5,7 @@
 function productsUpdate(data) {
     let del_btn = $(`<div class="buttons"><button>Delete</button></div>`);
     let main = $(`
-        <div class="product">
+        <div class="product" id="upc-${data.upc}">
             <a>${data.upc}</a>
             <a>${data.name}</a>
             <a>${data.description}</a>
@@ -20,32 +20,111 @@ function productsUpdate(data) {
 function usersUpdate(data) {
     let del_btn = $(`<div class="buttons"><button>Delete</button></div>`);
     let main = $(`
-        <div class="user">
+        <div class="user" id="userid-${data.id}">
             <a>${data.id}</a>
-            <a>${data.firstName}</a>
-            <a>${data.lastName}</a>
+            <a>${data.username}</a>
+            <a>${data.fullName}</a>
             <a>${data.email}</a>
+            <a>${data.user_type}</a>
         </div>
         `).append(del_btn);
     $('#users-container').append(main);
 }
 
 function sideContentUpdate(selector, data) {
-    //template
-    data.forEach((tmp, idx) => {
-        let edit = $('<button id="edit">Edit</button>');
-        let del = $('<button id="delete">Delete</button>');
-        let main = $(`
-            <div class="item" id="${idx}">
-                <a>${tmp}</a>
+    let appendableComponent = $("#" + selector + "-container" + " #list-items");
+    if ((selector == "categories" && CategoryInit == 0) || (selector == "stockist" && StockistInit == 0)) {
+        //if we havent loaded the page
+        let addbtn = $(`<button id="add-${selector}-btn">Add</button>`)
+            .click({id: "add-" + selector, type: selector, command: "add"}, sideContent_add_del);
+        
+        let addComponent = $(`
+            <div id="add-${selector}" class="item">
+                <input id="add-${selector}" type="text">
                 <div class="buttons"></div>
             </div>
-            `)
+            `);
+        addbtn.appendTo(addComponent.children('.buttons'));
+        appendableComponent.append(addComponent);
+        if (selector == "categories") CategoryInit = 1;
+        if (selector == "stockist") StockistInit = 1;
+    }
+    
+    // Each Category name is unique => using it as the unique identifier for components
 
-        edit.appendTo(main.children('.buttons'));
-        del.appendTo(main.children('.buttons'));
-        $(selector + " #list-items").append(main);
-    });
+    //template
+
+    //Create the buttons dawg
+    let edit = $(`<button id="edit-btn">Edit</button>`)
+        .click({id: data, type: selector}, editSideContent);
+    let del = $(`<button id="delete-btn">Delete</button>`)
+        .click({id: data, type: selector, command: "del"}, sideContent_add_del);
+
+    let main = $(`
+        <div class="item" id="${data}">
+            <input id="inputEdit-${selector}${data}" class="hidden">
+            <a>${data}</a>
+            <div class="buttons"></div>
+        </div>
+        `)
+
+    edit.appendTo(main.children('.buttons'));
+    del.appendTo(main.children('.buttons'));
+    appendableComponent.append(main);
+}
+
+function editSideContent(event) {
+    let id = event.data.id;
+    let type = event.data.type;
+
+    let item = $('#' + type + "-container #" + id);
+    let del_btn = item.find('#delete-btn');
+    let upd_btn = item.find('#edit-btn');
+    let input = item.find("input");
+    let itemName = item.find("a");
+    if (upd_btn.text() == "Edit") {
+        upd_btn.text("Done");
+        del_btn.toggleClass('hidden');
+        itemName.toggleClass('hidden');
+        input.val(itemName.text());
+        input.toggleClass('hidden');
+    } else {
+        // API FUNCTIONALITY DONE HERE
+        // UPDATE EVERYWHERE WHERE THIS CATEGORY EXISTS
+        // THEN RELOAD ALL PRODUCTS ? - MAYBE CAN JUST TRY TO FIND WHERE THIS VAL EXITS IN THE PAGE
+        //      => IN THE CORRECT CONTEXT
+
+        upd_btn.text("Edit");
+        del_btn.toggleClass('hidden');
+        input.toggleClass('hidden');
+        itemName.text(input.val());
+        itemName.toggleClass('hidden');
+    }
+}
+
+function sideContent_add_del(event) {
+    let operation = event.data.command;
+    let type = event.data.type;
+    let id = event.data.id;
+
+    let addInputValue = $('#' + type + "-container #" + id + " input").val().trim();
+    if (operation == "add" && addInputValue !== '') {
+        let items = $('#' + type + "-container");
+        let item = items.find('#' + id);
+
+        if ($('.item#' + addInputValue).length == 0) {
+            sideContentUpdate(type, addInputValue);
+            item.find('input').attr('placeholder', 'Success')
+
+            // IMPLEMENT API SHIT HERE !!!
+        } else item.find('input').attr('placeholder', 'Error - Try again');
+        item.find('input').val('');
+    }
+
+    if (operation == "del") {
+        $('.item#' + id).remove();
+        // IMPLEMENT API SHIT HERE
+    }
 }
 
 // Tmp Data
@@ -90,34 +169,41 @@ let products = [
 let users = [
     {
         id: "001",
-        firstName: "John",
-        lastName: "Doe",
-        email: "johnDoe@generic.com"
+        username: "GenericUsername",
+        fullName: "GenericFullName",
+        email: "GenericEmail@gmail.com",
+        user_type: "GenericUserType"
     },
     {
         id: "002",
-        firstName: "Jane",
-        lastName: "Doe",
-        email: "janeDoe@generic.com"
+        username: "GenericUsername",
+        fullName: "GenericFullName",
+        email: "GenericEmail@gmail.com",
+        user_type: "GenericUserType"
     },
     {
-        id: "003",
-        firstName: "Pavan",
-        lastName: "DeGoat",
-        email: "PavanDeGoat@generic.com"
+        id: "011",
+        username: "GenericUsername",
+        fullName: "GenericFullName",
+        email: "GenericEmail@gmail.com",
+        user_type: "GenericUserType"
     },
     {
-        id: "004",
-        firstName: "John but this is really long",
-        lastName: "Doe but this is really long",
-        email: "johnDoe@generic.com but this is really long"
+        id: "012",
+        username: "GenericUsername",
+        fullName: "GenericFullName",
+        email: "GenericEmail@gmail.com",
+        user_type: "GenericUserType"
     }
 ]
 
+// Initiliser varibles
+let CategoryInit = 0;
+let StockistInit = 0;
 function webLoad() {
     //Load side content
-    sideContentUpdate('#categories-container', categoryTmp);
-    sideContentUpdate('#stockist-container', StockistTmp);
+    categoryTmp.forEach((cat) => { sideContentUpdate('categories', cat) });
+    StockistTmp.forEach((stock) => { sideContentUpdate('stockist', stock) });
 
     products.forEach((prod) => { productsUpdate(prod) });
     users.forEach((user) => { usersUpdate(user) });

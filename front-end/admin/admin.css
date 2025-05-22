@@ -70,7 +70,7 @@
 #content-container {
     display: flex;
     gap: 1em;
-    margin: 2em;
+    margin: 1em;
 }
 
 #side-content {
@@ -107,8 +107,8 @@
 
 #list-items input {
     width: 78%;
-    margin-left: 2px;
     border-radius: 3px;
+    padding: 0.3em;
     border: none;
 }
 
