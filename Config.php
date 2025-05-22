@@ -1,12 +1,20 @@
 <?php
 class Database {
-    private $host = 'localhost';
-    private $username = '';
-    private $password = '';
-    private $database = '';
-    public $conn;
+    private $host = 'wheatley.cs.up.ac.za';
+    private $username = 'u24658198';
+    private $password = 'CHPVX4DFIS3NYQX3S2FWYONZNWG7YUMS';
+    private $database = 'u24658198_';
+    private $conn;
 
-    public function __construct() {
+    public static function connect(){
+        static $obj = null;
+        
+        if($obj === null) $obj = new Database();
+        // if($obj === null) $obj = new DBConnector(); // comment out during submission
+        return $obj;
+    }
+
+    private function __construct() {
         $this->conn = new mysqli($this->host, $this->username, $this->password, $this->database);
         
         if ($this->conn->connect_error) {
@@ -25,6 +33,101 @@ class Database {
         }
         return $stmt;
     }
+
+    /*
+        adds new user to the database
+    */ 
+    public function addUser($username, $full_name, $email, $passHash, $salt ,$api_key, $type){
+        $sqlQuery = $this->prepare("INSERT INTO users (username, full_name, email, password, salt, apikey, user_type)
+        values (?,?,?,?,?,?,?)");
+
+        $typeIndex = ($type == 'Customer') ? 1 : (($type == 'Business') ? 2 : 3);
+        $sqlQuery->bind_param('ssssssi', $username, $full_name, $email, $passHash, $salt ,$api_key, $typeIndex);
+        
+        if($sqlQuery->execute()){
+            return $sqlQuery->affected_rows === 1;
+        }
+        else{
+            throw new Exception("Could not add user to the database");
+        }
+        
+    }
+
+    /*
+     * function to check that the email does not on database
+     * OR
+     * validate user on login
+     * How to use:
+     * For login : pass in username value, null for email and password value.
+     * For register : pass in username value and email value. Omit password or pass
+     *                  null.
+     */
+    public function validateUser($username, $email=null,$password=null) {
+        $query = "SELECT password, salt FROM users WHERE username=?";
+        if(!empty($email)) $query .= " AND email=?";
+        
+        $sqlQuery = $this->prepare($query);
+
+        if(isset($email)) $sqlQuery->bind_param('ss', $email, $username);
+        else $sqlQuery->bind_param('s', $username);
+
+        $sqlQuery->execute();
+
+        $result = $sqlQuery->get_result();
+
+        if(empty($password)){ // register check
+            // should return empty set if email does not exist 
+            $success = $result->num_rows === 0;
+        }
+        else if(isset($password)){ // login validation
+
+            if($result->num_rows > 0){
+                $row = $result->fetch_assoc();
+                $passHash = $row['password']; // hash
+                $salted_input = $password . $row['salt']; // input+salt
+                // true if the hashes match
+                $success = password_verify($salted_input, $passHash);
+            }
+            else $success = false;
+        }
+        
+        return $success;
+    }
+
+    /*
+    * Gets user information via their email, this is just to make api
+    * coding easier lowkey
+    */
+    public function getUser($username){
+        $query = "SELECT * FROM users WHERE username=?";
+        $sqlQuery = $this->prepare($query);
+        $sqlQuery->bind_param('s', $username);
+        $sqlQuery->execute();
+        $result = $sqlQuery->get_result();
+        
+
+        return $result->fetch_assoc();
+    }
+
+    /*
+     * Used to validate apikeys of logged in users
+     */
+
+    public function checkApiKey($apikey){
+        $query = "SELECT 1 FROM users WHERE api_key=?";
+        $sqlQuery = $this->prepare($query);
+        $sqlQuery->bind_param('s', $apikey);
+        $sqlQuery->execute();
+        $result = $sqlQuery->get_result();
+        
+
+        return ($result->num_rows === 1);
+    }
+
+    /**
+     * Function to return get products
+     * 
+     */
     
     public function close() {
         $this->conn->close();
@@ -35,4 +138,5 @@ class Database {
         return $this->conn->error;
     }
 }
+
 ?>

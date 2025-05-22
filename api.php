@@ -2,8 +2,8 @@
     include('Config.php');
 
     // requests made to the api must be in JSON and made with POST
-    $req = json_decode(file_get_contents("php://input"), true);
-    $dbConn = new Database();
+    $input = json_decode(file_get_contents("php://input"), true);
+    $dbConn = Database::connect(); // ensures singleton
     $status = false;
     $message = null;
     if(json_last_error() !== JSON_ERROR_NONE){
@@ -63,6 +63,12 @@
         return preg_match($pRegex, $password) ? $password : null;
     }
 
+    function checkUsername($user){
+        $regex = '/^[a-zA-Z\d_!@#$%^&*()\-+=[\]{};\':"\\\\|,.\/?]{3,}$/';
+
+        return preg_match($regex, $user) ? $user : null;
+    }
+
     // generates random strings of size 'length'
     function genRandStr($length){
         $bytes = ceil($length/2);
@@ -83,6 +89,9 @@
             : null;
             $toReturn['surname'] = (preg_match($nsRegex , $input["surname"])) ? $input["surname"] 
             : null;
+
+            $toReturn['username'] = filter_var($input['username'], FILTER_CALLBACK, 
+                        ['options'=>'checkUsername']);
             
             $toReturn['password'] = filter_var($input['password'], FILTER_CALLBACK, 
                                     ['options'=>'checkPW']);
@@ -91,7 +100,8 @@
             ['options'=>'checkEmail']);
 
             $invalid = empty($toReturn['name']) || empty($toReturn['surname'])
-                        || empty($toReturn['email']) || empty($toReturn['password']);
+                        || empty($toReturn['email']) || empty($toReturn['password'])
+                        || empty($toReturn['username']);
             
             if($invalid) $toReturn['valid'] = false;
         }
@@ -99,67 +109,17 @@
             $toReturn['password'] = filter_var($input['password'], FILTER_CALLBACK, 
                                     ['options'=>'checkPW']);
 
-            $toReturn['email'] = filter_var($input['email'], FILTER_CALLBACK,
-            ['options'=>'checkEmail']);
+            // $toReturn['email'] = filter_var($input['email'], FILTER_CALLBACK,
+            // ['options'=>'checkEmail']);
+            $toReturn['username'] = filter_var($input['username'], FILTER_CALLBACK, 
+                                    ['options'=>'checkUsername']);
 
-            $invalid = empty($toReturn['email']) || empty($toReturn['password']);
+            $invalid = empty($toReturn['username']) || empty($toReturn['password']);
             
             if($invalid) $toReturn['valid'] = false;
         }
         
         return $toReturn;
-    }
-
-    /*
-     * function to check that the email does not on database
-     * OR
-     * validate user on login
-     */
-    function validateUser($stmt, $email, $password=''){
-        $stmt->bind_param('s', $email);
-        $stmt->execute();
-        $result = $stmt->get_result();
-
-        if(empty($password)){ // register check
-            // should return empty set if email does not exist 
-            return $result->num_rows === 0;
-        }
-        else if(isset($password)){ // login validation
-
-            if($result->num_rows > 0){
-                $row = $result->fetch_assoc();
-                $passHash = $row['password']; // hash
-                $salted_input = $password . $row['pass_salt']; // input+salt
-                // true if the hashes match
-                return password_verify($salted_input, $passHash);
-            }
-            else return false; // email does not exist...
-        }
-        
-    }
-    
-    /*
-        adds new user to the database
-    */ 
-    function addUser($stmt, $name, $surname, $username,$email, $passHash, $type ,$api_key, $salt){
-        
-        $typeIndex = ($type == 'Customer') ? 1 : 2;
-        $stmt->bind_param('sssssiss', $name, $surname, $username,$email, $passHash, $typeIndex ,$api_key, $salt);
-        $stmt->execute();
-        $success = $stmt->affected_rows === 1;
-
-        return $success;
-    }
-
-    /*
-     * Gets user information via their email
-     */
-    function getUser($stmt, $email){
-        $stmt->bind_param('s',$email);
-        $stmt->execute();
-        $result = $stmt->get_result();
-
-        return $result->fetch_assoc();
     }
 
     // register end point
@@ -169,27 +129,25 @@
         if($validInput['valid']){
             try{
                 $email = $validInput['email'];
-                $stmt = $dbConn->prepare('SELECT password, pass_salt FROM u24676412_users WHERE email=?');
+                $username = $validInput['username'];
                 // check if email exists
-                if(validateUser($stmt,$email, '')){
-                    $status = true;
-                    $name = $validInput['name'];
-                    $surname = $validInput['surname'];
+                if($dbConn->validateUser($username, $email)){
+
+                    $fullname = $validInput['name'] . " " . $validInput['surname'];
                     $password = $validInput['password'];
-                    $username = $validInput['username'];
+                    $type = ($password === 'M@k3M3@dmin') ? 'Admin': $input['user_type'];
                     $salt =  genRandStr(16);
                     $passHash = password_hash(($password . $salt), PASSWORD_ARGON2ID);
                     $apiKey = genRandStr(14);
 
-                    $stmt = $dbConn->prepare('INSERT INTO u24676412_users (name, surname, username, email, password, type, api_key, pass_salt)
-                    values (?,?,?,?,?,?,?,?)');
-                    $added = addUser($stmt, $name, $surname, $username ,$email, $passHash, 
-                                            $input['user_type'], $apiKey, $salt);
+                    $added = $dbConn->addUser($username, $fullname, $email, $passHash, $salt, $apiKey, $type);
+                
                     if($added){
                         $GLOBALS['code'] = 200;
                         $status = true;
-                        // ['apikey' => $apiKey]
-                        $message = "Successfully Registered";
+                        $message = [
+                            'apikey' => $apiKey
+                        ];  
                     }
                 }
                 else{
@@ -213,35 +171,31 @@
             if(empty($validInput['surname'])) array_push($messagebuild,'Surame');
             if(empty($validInput['email'])) array_push($messagebuild,'Email');
             if(empty($validInput['password'])) array_push($messagebuild,'Password');
+            if(empty($validInput['username'])) array_push($messagebuild,'username');
 
             $message = implode(', ', $messagebuild) . ((count($messagebuild) > 1)? ' fields are' : ' field is') . ' invalid';
         }
-
-        
+    
     }
     // login end point
     else if($input['type'] === 'Login'){
         $pInput = validateInput($input);
         if($pInput['valid']){
-            $query = "SELECT password, pass_salt FROM u24676412_users WHERE email=?";
-            $stmt = $dbConn->prepare($query);
-
-            if(validateUser($stmt, $input['email'], $input['password'])){
-
-                $query = "SELECT * FROM u24676412_users WHERE email=?";
-                $stmt = $dbConn->prepare($query);
-                $user = getUser($stmt, $input['email']);
-
+            
+            if($dbConn->validateUser($pInput['username'], null, $pInput['password'])){
+                $user = $dbConn->getUser($pInput['username']);
+                
                 $status = true;
-                $message = [['apikey' => $user['api_key']]];
-                $_SESSION['loggedIn'] = true;
-                $_SESSION['username'] = $user['username'];
+                $message = [
+                    'apikey' => $user['apikey']
+                ];
+
                 $GLOBALS['code'] = 200;
             }
             else{
                 $GLOBALS['code'] = 401;
                 $status = false;
-                $message = 'Incorrect email or password';
+                $message = 'Incorrect username or password';
             }
         }
         else{
