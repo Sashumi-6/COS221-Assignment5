@@ -53,6 +53,36 @@ body {
     font-size: 1.3em;   
 }
 
+#cust_types {
+    display: flex;
+    gap: 4em;
+    margin: 2em 0px 0px 1em;
+}
+
+#cust_types button {
+    background-color: #F2F0EF;
+    color: #949392;
+    padding: 0.25em 1em;
+    font-size: 1em;   
+}
+
+
+
+
+#cust_label {
+    color: #F2F0EF;
+    font-size: 1.2em;
+    letter-spacing: 2px;
+    margin: 1.5em 0 0 0;
+    text-align: center;
+    width: 100%;
+    font-weight: 400;
+
+
+
+}
+
+
 .buttons {
   position: relative;
   font-size: 1.875rem;
@@ -93,3 +123,4 @@ body {
     0 4px 0 0 #cacaca,
     0 4px 6px 0 #cecece;
 }
+
