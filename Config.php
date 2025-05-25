@@ -252,6 +252,52 @@ class Database {
 
     }
 
+    public function getCategoryWithDescendants($categoryId) {
+    // First try with recursive CTE (MySQL 8+)
+    $query = "
+    WITH RECURSIVE category_tree AS (
+        SELECT category_id, parent_category_id FROM category WHERE category_id = ?
+        UNION ALL
+        SELECT c.category_id, c.parent_category_id FROM category c
+        JOIN category_tree ct ON c.parent_category_id = ct.category_id
+    )
+    SELECT category_id FROM category_tree";
+    
+    $stmt = $this->conn->prepare($query);
+    if ($stmt) {
+        $stmt->bind_param('i', $categoryId);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $ids = $result->fetch_all(MYSQLI_ASSOC);
+        return array_column($ids, 'category_id');
+    }
+    
+    // Fallback for older MySQL versions
+    $allCategories = $this->getAllCategories();
+    return $this->getDescendantsRecursive($allCategories, $categoryId);
+}
+
+private function getAllCategories() {
+    $query = "SELECT category_id, parent_category_id FROM category";
+    $result = $this->conn->query($query);
+    return $result->fetch_all(MYSQLI_ASSOC);
+}
+
+private function getDescendantsRecursive($categories, $parentId) {
+    $result = [$parentId];
+    
+    foreach ($categories as $category) {
+        if ($category['parent_category_id'] == $parentId) {
+            $result = array_merge(
+                $result, 
+                $this->getDescendantsRecursive($categories, $category['category_id'])
+            );
+        }
+    }
+    
+    return $result;
+}
+
     /**
      * removes category by id
      */
