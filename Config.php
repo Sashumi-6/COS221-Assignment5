@@ -323,6 +323,19 @@ class Database {
         
     }
 
+    public function deleteProduct($upc) {
+        
+        $query = "DELETE FROM products WHERE upc = ?";
+        $stmt = $this->prepare($query);
+        $stmt->bind_param('i', $upc);
+        
+        if (!$stmt->execute()) {
+            throw new Exception('Could not delete product from the database.');
+        }
+
+
+}
+
     /**
      * add a new product
      */
@@ -414,12 +427,14 @@ class Database {
         // Return true if any rows were affected
         return $stmt->affected_rows > 0;
     }
+
+    
     
     public function close() {
         $this->conn->close();
     }
     
-    // Add this method to access connection errors
+
     public function error() {
         return $this->conn->error;
     }
