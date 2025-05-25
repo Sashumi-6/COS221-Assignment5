@@ -140,14 +140,97 @@ class Database {
      * 
      */
 
-    public function getAllProducts(){
-        $query = "SELECT * FROM products";
-        $sqlQuery = $this->prepare($query);
-        $sqlQuery->execute();
-        $result = $sqlQuery->get_result();
-        
-        return $result->fetch_all(MYSQLI_ASSOC);
+ public function getAllProducts($filters = []) {
+    $query = "SELECT 
+                p.upc, 
+                p.product_name, 
+                p.desc AS description,
+                p.dimensions,
+                p.img_url,
+                p.brand,
+                p.category_id,
+                p.supplier_id,
+                s.supplier_id AS supplier_id,
+                s.supplier_name,
+                s.contact_info AS supplier_contact,
+                c.category_id AS category_id,
+                c.category_name,
+                pc.category_name AS parent_category_name
+              FROM products p
+              LEFT JOIN suppliers s ON p.supplier_id = s.supplier_id
+              LEFT JOIN categories c ON p.category_id = c.category_id
+              LEFT JOIN categories pc ON c.parent_category_id = pc.category_id
+              WHERE 1=1";
+    
+    $params = [];
+    $types = '';
+    
+    // Add filters
+    if (!empty($filters['upc'])) {
+        $query .= " AND p.upc = ?";
+        $params[] = $filters['upc'];
+        $types .= 'i';
     }
+    
+    if (!empty($filters['supplier_id'])) {
+        $query .= " AND p.supplier_id = ?";
+        $params[] = $filters['supplier_id'];
+        $types .= 'i';
+    }
+    
+    if (!empty($filters['product_name'])) {
+        $query .= " AND p.product_name LIKE ?";
+        $params[] = '%' . $filters['product_name'] . '%';
+        $types .= 's';
+    }
+    
+    if (!empty($filters['brand'])) {
+        $query .= " AND p.brand LIKE ?";
+        $params[] = '%' . $filters['brand'] . '%';
+        $types .= 's';
+    }
+    
+    if (!empty($filters['category_id'])) {
+        $query .= " AND p.category_id = ?";
+        $params[] = $filters['category_id'];
+        $types .= 'i';
+    }
+    
+    // Execute query
+    $stmt = $this->conn->prepare($query);
+    
+    if (!empty($params)) {
+        $stmt->bind_param($types, ...$params);
+    }
+    
+    $stmt->execute();
+    $result = $stmt->get_result();
+    
+    // Format the results with nested supplier and category info
+    $products = [];
+    while ($row = $result->fetch_assoc()) {
+        $products[] = [
+            'upc' => $row['upc'],
+            'product_name' => $row['product_name'],
+            'description' => $row['description'],
+            'dimensions' => $row['dimensions'],
+            'img_url' => $row['img_url'],
+            'brand' => $row['brand'],
+            'supplier' => [
+                'supplier_id' => $row['supplier_id'],
+                'supplier_name' => $row['supplier_name'],
+                'contact_info' => $row['supplier_contact']
+            ],
+            'category' => [
+                'category_id' => $row['category_id'],
+                'category_name' => $row['category_name'],
+                'parent_category' => $row['parent_category_name']
+            ]
+        ];
+    }
+    
+    return $products;
+}
 
     
 
