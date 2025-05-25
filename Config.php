@@ -129,14 +129,66 @@ class Database {
      * 
      */
 
-     public function getAllProducts(){
+       public function getAllProducts(){
         $query = "SELECT * FROM products";
         $sqlQuery = $this->prepare($query);
         $sqlQuery->execute();
         $result = $sqlQuery->get_result();
         
         return $result->fetch_all(MYSQLI_ASSOC);
-     }
+    }
+
+   public function updateProduct($updateData) {
+    // building the query
+    $query = "UPDATE products SET ";
+    $params = [];
+    $types = '';
+    $updates = [];
+
+    // dynamic SET clauses with proper escaping
+    foreach ($updateData as $field => $value) {
+        if ($field !== 'upc' && $value !== null) {
+            // Wrap field names in backticks to handle reserved keywords
+            $escapedField = "`" . str_replace("`", "``", $field) . "`";
+            $updates[] = "$escapedField = ?";
+            $params[] = $value;
+            
+            //  type based on field
+            if ($field === 'category_id' || $field === 'supplier_id') {
+                $types .= 'i'; // integer
+            } else {
+                $types .= 's'; // string
+            }
+        }
+    }
+
+    // WHERE clause 
+    $query .= implode(', ', $updates) . " WHERE `upc` = ?";
+    $params[] = $updateData['upc'];
+    $types .= 'i'; // upc is integer
+
+    error_log("Update Query: " . $query); // debug logging
+    error_log("Params: " . print_r($params, true)); // debug logging
+
+    // Prepare and execute
+    $stmt = $this->conn->prepare($query);
+    if (!$stmt) {
+        error_log("Prepare error: " . $this->conn->error);
+        throw new Exception("Prepare failed: " . $this->conn->error);
+    }
+
+    if (!empty($params)) {
+        $stmt->bind_param($types, ...$params);
+    }
+
+    if (!$stmt->execute()) {
+        error_log("Execute error: " . $stmt->error);
+        throw new Exception("Execute failed: " . $stmt->error);
+    }
+
+    // Return true if any rows were affected
+    return $stmt->affected_rows > 0;
+}
     
     public function close() {
         $this->conn->close();
