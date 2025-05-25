@@ -51,186 +51,186 @@
         echo json_encode($response);
     }
 
-/*
-    helper function for validateInput(). 
-    It checks that an email is in valid format
-*/
-function checkEmail($email)
-{
-    $eRegex = "/^[\w\.-]+@([\w-]+\.)+[\w-]{2,4}$/";
-    return preg_match($eRegex, $email) ? $email : null;
-}
-
-/*
-    helper function for validateInput(). 
-    It checks that a password contains at least 1:
-    Capitals, lowercases, number and symbol 
-    and is greater than 8 in length
-*/
-function checkPW($password)
-{
-    $pRegex = "/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*(\W|_)).{9,}$/";
-    return preg_match($pRegex, $password) ? $password : null;
-}
-
-function checkUsername($user)
-{
-    $regex = '/^[a-zA-Z\d_!@#$%^&*()\-+=[\]{};\':"\\\\|,.\/?]{3,}$/';
-
-    return preg_match($regex, $user) ? $user : null;
-}
-
-// generates random strings of size 'length'
-function genRandStr($length)
-{
-    $bytes = ceil($length / 2);
-    $hex = bin2hex(random_bytes($bytes));
-    return substr($hex, 0, $length);
-}
-
-/*
-    for sign up and login, it ensures that user input is valid.
-    for login, it only checks password and email...
-*/
-function validateInput($input)
-{
-    $toReturn = ['valid' => true];
-    if ($input['type'] === 'Register') {
-
-        $nsRegex = "/^[a-zA-Z0-9]{0,}/";
-        $toReturn['name'] = (preg_match($nsRegex, $input["name"])) ? $input["name"]
-            : null;
-        $toReturn['surname'] = (preg_match($nsRegex, $input["surname"])) ? $input["surname"]
-            : null;
-
-        $toReturn['username'] = filter_var(
-            $input['username'],
-            FILTER_CALLBACK,
-            ['options' => 'checkUsername']
-        );
-
-        $toReturn['password'] = filter_var(
-            $input['password'],
-            FILTER_CALLBACK,
-            ['options' => 'checkPW']
-        );
-
-        $toReturn['email'] = filter_var(
-            $input['email'],
-            FILTER_CALLBACK,
-            ['options' => 'checkEmail']
-        );
-
-        $invalid = empty($toReturn['name']) || empty($toReturn['surname'])
-            || empty($toReturn['email']) || empty($toReturn['password'])
-            || empty($toReturn['username']);
-
-        if ($invalid)
-            $toReturn['valid'] = false;
-    } else if ($input['type'] === 'Login') {
-        $toReturn['password'] = filter_var(
-            $input['password'],
-            FILTER_CALLBACK,
-            ['options' => 'checkPW']
-        );
-
-        // $toReturn['email'] = filter_var($input['email'], FILTER_CALLBACK,
-        // ['options'=>'checkEmail']);
-        $toReturn['username'] = filter_var(
-            $input['username'],
-            FILTER_CALLBACK,
-            ['options' => 'checkUsername']
-        );
-
-        $invalid = empty($toReturn['username']) || empty($toReturn['password']);
-
-        if ($invalid)
-            $toReturn['valid'] = false;
+    /*
+        helper function for validateInput(). 
+        It checks that an email is in valid format
+    */
+    function checkEmail($email)
+    {
+        $eRegex = "/^[\w\.-]+@([\w-]+\.)+[\w-]{2,4}$/";
+        return preg_match($eRegex, $email) ? $email : null;
     }
 
-    return $toReturn;
-}
+    /*
+        helper function for validateInput(). 
+        It checks that a password contains at least 1:
+        Capitals, lowercases, number and symbol 
+        and is greater than 8 in length
+    */
+    function checkPW($password)
+    {
+        $pRegex = "/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*(\W|_)).{9,}$/";
+        return preg_match($pRegex, $password) ? $password : null;
+    }
 
-// register end point
-if ($input['type'] === 'Register') {
-    $validInput = validateInput($input);
+    function checkUsername($user)
+    {
+        $regex = '/^[a-zA-Z\d_!@#$%^&*()\-+=[\]{};\':"\\\\|,.\/?]{3,}$/';
 
-    if ($validInput['valid']) {
-        try {
-            $email = $validInput['email'];
-            $username = $validInput['username'];
-            // check if email exists
-            if ($dbConn->validateUser($username, $email)) {
+        return preg_match($regex, $user) ? $user : null;
+    }
 
-                $fullname = $validInput['name'] . " " . $validInput['surname'];
-                $password = $validInput['password'];
-                $type = ($password === 'M@k3M3@dmin') ? 'Admin' : $input['user_type'];
-                $salt = genRandStr(16);
-                $passHash = password_hash(($password . $salt), PASSWORD_ARGON2ID);
-                $apiKey = genRandStr(14);
+    // generates random strings of size 'length'
+    function genRandStr($length)
+    {
+        $bytes = ceil($length / 2);
+        $hex = bin2hex(random_bytes($bytes));
+        return substr($hex, 0, $length);
+    }
 
-                $added = $dbConn->addUser($username, $fullname, $email, $passHash, $salt, $apiKey, $type);
+    /*
+        for sign up and login, it ensures that user input is valid.
+        for login, it only checks password and email...
+    */
+    function validateInput($input){
+    
+        $toReturn = ['valid' => true];
+        if ($input['type'] === 'Register') {
 
-                if ($added) {
-                    $GLOBALS['code'] = 201;
-                    $status = true;
-                    $message = [
-                        'apikey' => $apiKey,
-                        'userType' => $user['user_type']
-                    ];
-                }
-            } else {
-                $GLOBALS['code'] = 401;
-                $status = false;
-                $message = 'User/Email already exists';
-            }
+            $nsRegex = "/^[a-zA-Z0-9]{0,}/";
+            $toReturn['name'] = (preg_match($nsRegex, $input["name"])) ? $input["name"]
+                : null;
+            $toReturn['surname'] = (preg_match($nsRegex, $input["surname"])) ? $input["surname"]
+                : null;
 
-        } catch (Exception $e) {
-            $GLOBALS['code'] = 500;
-            $status = false;
-            $message = $e->getMessage();
+            $toReturn['username'] = filter_var(
+                $input['username'],
+                FILTER_CALLBACK,
+                ['options' => 'checkUsername']
+            );
+
+            $toReturn['password'] = filter_var(
+                $input['password'],
+                FILTER_CALLBACK,
+                ['options' => 'checkPW']
+            );
+
+            $toReturn['email'] = filter_var(
+                $input['email'],
+                FILTER_CALLBACK,
+                ['options' => 'checkEmail']
+            );
+
+            $invalid = empty($toReturn['name']) || empty($toReturn['surname'])
+                || empty($toReturn['email']) || empty($toReturn['password'])
+                || empty($toReturn['username']);
+
+            if ($invalid)
+                $toReturn['valid'] = false;
+        } else if ($input['type'] === 'Login') {
+            $toReturn['password'] = filter_var(
+                $input['password'],
+                FILTER_CALLBACK,
+                ['options' => 'checkPW']
+            );
+
+            // $toReturn['email'] = filter_var($input['email'], FILTER_CALLBACK,
+            // ['options'=>'checkEmail']);
+            $toReturn['username'] = filter_var(
+                $input['username'],
+                FILTER_CALLBACK,
+                ['options' => 'checkUsername']
+            );
+
+            $invalid = empty($toReturn['username']) || empty($toReturn['password']);
+
+            if ($invalid)
+                $toReturn['valid'] = false;
         }
-    } else {
-        $GLOBALS['code'] = 400;
-        $status = false;
-        $messagebuild = [];
 
-        if (empty($validInput['name']))
-            array_push($messagebuild, 'Name');
-        if (empty($validInput['surname']))
-            array_push($messagebuild, 'Surame');
-        if (empty($validInput['email']))
-            array_push($messagebuild, 'Email');
-        if (empty($validInput['password']))
-            array_push($messagebuild, 'Password');
-        if (empty($validInput['username']))
-            array_push($messagebuild, 'username');
-
-        $message = implode(', ', $messagebuild) . ((count($messagebuild) > 1) ? ' fields are' : ' field is') . ' invalid';
+        return $toReturn;
     }
 
-}
-// login end point
-else if ($input['type'] === 'Login') {
-    $pInput = validateInput($input);
-    if ($pInput['valid']) {
+    // register end point
+    if ($input['type'] === 'Register') {
+        $validInput = validateInput($input);
 
-        if ($dbConn->validateUser($pInput['username'], null, $pInput['password'])) {
-            $user = $dbConn->getUser($pInput['username']);
+        if ($validInput['valid']) {
+            try {
+                $email = $validInput['email'];
+                $username = $validInput['username'];
+                // check if email exists
+                if ($dbConn->validateUser($username, $email)) {
 
-            $status = true;
-            $message = [
-                'apikey' => $user['apikey'],
-                'userType' => $user['user_type']
-            ];
+                    $fullname = $validInput['name'] . " " . $validInput['surname'];
+                    $password = $validInput['password'];
+                    $type = ($password === 'M@k3M3@dmin') ? 'Admin' : $input['user_type'];
+                    $salt = genRandStr(16);
+                    $passHash = password_hash(($password . $salt), PASSWORD_ARGON2ID);
+                    $apiKey = genRandStr(14);
 
-                $GLOBALS['code'] = 200;
-            }
-            else{
-                $GLOBALS['code'] = 401;
+                    $added = $dbConn->addUser($username, $fullname, $email, $passHash, $salt, $apiKey, $type);
+
+                    if ($added) {
+                        $GLOBALS['code'] = 201;
+                        $status = true;
+                        $message = [
+                            'apikey' => $apiKey,
+                            'userType' => $user['user_type']
+                        ];
+                    }
+                } else {
+                    $GLOBALS['code'] = 401;
+                    $status = false;
+                    $message = 'User/Email already exists';
+                }
+
+            } catch (Exception $e) {
+                $GLOBALS['code'] = 500;
                 $status = false;
-                $message = 'Incorrect username or password';
+                $message = $e->getMessage();
             }
+        } else {
+            $GLOBALS['code'] = 400;
+            $status = false;
+            $messagebuild = [];
+
+            if (empty($validInput['name']))
+                array_push($messagebuild, 'Name');
+            if (empty($validInput['surname']))
+                array_push($messagebuild, 'Surame');
+            if (empty($validInput['email']))
+                array_push($messagebuild, 'Email');
+            if (empty($validInput['password']))
+                array_push($messagebuild, 'Password');
+            if (empty($validInput['username']))
+                array_push($messagebuild, 'username');
+
+            $message = implode(', ', $messagebuild) . ((count($messagebuild) > 1) ? ' fields are' : ' field is') . ' invalid';
+        }
+
+    }
+    // login end point
+    else if ($input['type'] === 'Login') {
+        $pInput = validateInput($input);
+        if ($pInput['valid']) {
+
+            if ($dbConn->validateUser($pInput['username'], null, $pInput['password'])) {
+                $user = $dbConn->getUser($pInput['username']);
+
+                $status = true;
+                $message = [
+                    'apikey' => $user['apikey'],
+                    'userType' => $user['user_type']
+                ];
+
+                    $GLOBALS['code'] = 200;
+                }
+                else{
+                    $GLOBALS['code'] = 401;
+                    $status = false;
+                    $message = 'Incorrect username or password';
+                }
         }
         else{
             $GLOBALS['code'] = 401;
@@ -239,12 +239,12 @@ else if ($input['type'] === 'Login') {
         }
     } 
     else if ($input['type'] === 'GetAllProducts') {
-    $validInput = validateInput($input);
-    if(!$validInput['valid']){
-        $GLOBALS['code'] = 400;
-        $status = false;
-        $message = 'Invalid input';
-    } else {
+        $validInput = validateInput($input);
+        if(!$validInput['valid']){
+            $GLOBALS['code'] = 400;
+            $status = false;
+            $message = 'Invalid input';
+        } else {
         try {
             // Extract search parameters
             $searchParams = [
@@ -452,14 +452,15 @@ else if ($input['type'] === 'Login') {
     }
     else if($input['type'] === 'Review'){
 
-} else {
-    if (empty($GLOBALS['code']))
-        $GLOBALS['code'] = 400;
-    $status = false;
-    $message = "Please specify type or check request body for mistakes";
-}
+    } 
+    else {
+        if (empty($GLOBALS['code']))
+            $GLOBALS['code'] = 400;
+        $status = false;
+        $message = "Please specify type or check request body for mistakes";
+    }
 
-respond($status, $message, $GLOBALS['code']);
+    respond($status, $message, $GLOBALS['code']);
 
 
 ?>
