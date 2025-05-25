@@ -34,7 +34,7 @@ body {
     width: 75%;
 }
 
-#signup-options input {
+#signup-options input, select {
     font-size: 1em;
     height: 2em;
     padding: 0.3em;
@@ -92,4 +92,13 @@ body {
     0 3px 0 0 #dcdcdc,
     0 4px 0 0 #cacaca,
     0 4px 6px 0 #cecece;
+}
+#signup-error {
+    color: #ff4d4d;
+    font-size: 1rem;
+    width: 100%;
+    text-align: center;
+    margin-top: 1em;
+    z-index: 1;
+    position: relative;
 }
