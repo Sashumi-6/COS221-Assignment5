@@ -114,7 +114,7 @@ class Database {
     * coding easier lowkey as well
     */
     public function getUserWithApikey($apikey){
-        $query = "SELECT * FROM u24676412_users WHERE api_key='{$apikey}'";
+        $query = "SELECT * FROM users WHERE apikey='{$apikey}'";
         $result = $this->conn->query($query);
         
         return $result->fetch_assoc();
@@ -140,100 +140,97 @@ class Database {
      * 
      */
 
- public function getAllProducts($filters = []) {
-    $query = "SELECT 
-                p.upc, 
-                p.product_name, 
-                p.desc AS description,
-                p.dimensions,
-                p.img_url,
-                p.brand,
-                p.category_id,
-                p.supplier_id,
-                s.supplier_id AS supplier_id,
-                s.supplier_name,
-                s.contact_info AS supplier_contact,
-                c.category_id AS category_id,
-                c.category_name,
-                pc.category_name AS parent_category_name
-              FROM products p
-              LEFT JOIN suppliers s ON p.supplier_id = s.supplier_id
-              LEFT JOIN categories c ON p.category_id = c.category_id
-              LEFT JOIN categories pc ON c.parent_category_id = pc.category_id
-              WHERE 1=1";
-    
-    $params = [];
-    $types = '';
-    
-    // Add filters
-    if (!empty($filters['upc'])) {
-        $query .= " AND p.upc = ?";
-        $params[] = $filters['upc'];
-        $types .= 'i';
+    public function getAllProducts($filters = []) {
+        $query = "SELECT 
+                    p.upc, 
+                    p.product_name, 
+                    p.desc AS description,
+                    p.dimensions,
+                    p.img_url,
+                    p.brand,
+                    p.category_id,
+                    p.supplier_id,
+                    s.supplier_id AS supplier_id,
+                    s.supplier_name,
+                    s.contact_info AS supplier_contact,
+                    c.category_id AS category_id,
+                    c.category_name,
+                    pc.category_name AS parent_category_name
+                FROM products p
+                LEFT JOIN suppliers s ON p.supplier_id = s.supplier_id
+                LEFT JOIN categories c ON p.category_id = c.category_id
+                LEFT JOIN categories pc ON c.parent_category_id = pc.category_id
+                WHERE 1=1";
+        
+        $params = [];
+        $types = '';
+        
+        // Add filters
+        if (!empty($filters['upc'])) {
+            $query .= " AND p.upc = ?";
+            $params[] = $filters['upc'];
+            $types .= 'i';
+        }
+        
+        if (!empty($filters['supplier_id'])) {
+            $query .= " AND p.supplier_id = ?";
+            $params[] = $filters['supplier_id'];
+            $types .= 'i';
+        }
+        
+        if (!empty($filters['product_name'])) {
+            $query .= " AND p.product_name LIKE ?";
+            $params[] = '%' . $filters['product_name'] . '%';
+            $types .= 's';
+        }
+        
+        if (!empty($filters['brand'])) {
+            $query .= " AND p.brand LIKE ?";
+            $params[] = '%' . $filters['brand'] . '%';
+            $types .= 's';
+        }
+        
+        if (!empty($filters['category_id'])) {
+            $query .= " AND p.category_id = ?";
+            $params[] = $filters['category_id'];
+            $types .= 'i';
+        }
+        
+        // Execute query
+        $stmt = $this->conn->prepare($query);
+        
+        if (!empty($params)) {
+            $stmt->bind_param($types, ...$params);
+        }
+        
+        $stmt->execute();
+        $result = $stmt->get_result();
+        
+        // Format the results with nested supplier and category info
+        $products = [];
+        while ($row = $result->fetch_assoc()) {
+            $products[] = [
+                'upc' => $row['upc'],
+                'product_name' => $row['product_name'],
+                'description' => $row['description'],
+                'dimensions' => $row['dimensions'],
+                'img_url' => $row['img_url'],
+                'brand' => $row['brand'],
+                'supplier' => [
+                    'supplier_id' => $row['supplier_id'],
+                    'supplier_name' => $row['supplier_name'],
+                    'contact_info' => $row['supplier_contact']
+                ],
+                'category' => [
+                    'category_id' => $row['category_id'],
+                    'category_name' => $row['category_name'],
+                    'parent_category' => $row['parent_category_name']
+                ]
+            ];
+        }
+        
+        return $products;
     }
-    
-    if (!empty($filters['supplier_id'])) {
-        $query .= " AND p.supplier_id = ?";
-        $params[] = $filters['supplier_id'];
-        $types .= 'i';
-    }
-    
-    if (!empty($filters['product_name'])) {
-        $query .= " AND p.product_name LIKE ?";
-        $params[] = '%' . $filters['product_name'] . '%';
-        $types .= 's';
-    }
-    
-    if (!empty($filters['brand'])) {
-        $query .= " AND p.brand LIKE ?";
-        $params[] = '%' . $filters['brand'] . '%';
-        $types .= 's';
-    }
-    
-    if (!empty($filters['category_id'])) {
-        $query .= " AND p.category_id = ?";
-        $params[] = $filters['category_id'];
-        $types .= 'i';
-    }
-    
-    // Execute query
-    $stmt = $this->conn->prepare($query);
-    
-    if (!empty($params)) {
-        $stmt->bind_param($types, ...$params);
-    }
-    
-    $stmt->execute();
-    $result = $stmt->get_result();
-    
-    // Format the results with nested supplier and category info
-    $products = [];
-    while ($row = $result->fetch_assoc()) {
-        $products[] = [
-            'upc' => $row['upc'],
-            'product_name' => $row['product_name'],
-            'description' => $row['description'],
-            'dimensions' => $row['dimensions'],
-            'img_url' => $row['img_url'],
-            'brand' => $row['brand'],
-            'supplier' => [
-                'supplier_id' => $row['supplier_id'],
-                'supplier_name' => $row['supplier_name'],
-                'contact_info' => $row['supplier_contact']
-            ],
-            'category' => [
-                'category_id' => $row['category_id'],
-                'category_name' => $row['category_name'],
-                'parent_category' => $row['parent_category_name']
-            ]
-        ];
-    }
-    
-    return $products;
-}
-
-    
-
 
     /**
      * retrieves available categories (name, id [for now])
@@ -250,6 +247,20 @@ class Database {
             throw new Exception("Couldn't retrieve data from database.");
         }
 
+    }
+
+    public function getCategoryID($name){
+        $query = "SELECT category_id FROM categories WHERE category_name=?";
+        $stmt = $this->prepare($query);
+        $stmt->bind_param('s', $name);
+        
+        if($stmt->execute()){
+            $result = $stmt->get_result();
+            return $result->fetch_assoc();
+        }
+        else{
+            throw new Exception("Couldn't retrieve data from database.");
+        }
     }
 
     public function getCategoryWithDescendants($categoryId) {
@@ -302,6 +313,13 @@ private function getDescendantsRecursive($categories, $parentId) {
      * removes category by id
      */
     public function deleteCategory($id){
+        $query = "DELETE FROM categories WHERE category_id=?";
+        $stmt = $this->prepare($query);
+        $stmt->bind_param('i', $id);
+
+        if(!$stmt->execute()){
+            throw new Exception("Couldn't remove category from database.");
+        }
         
     }
 
@@ -309,69 +327,94 @@ private function getDescendantsRecursive($categories, $parentId) {
      * add a new product
      */
     public function addCategory($name, $parentID=null){
+        $query = "INSERT INTO categories (category_name" ;
+        if(isset($parentID)) $query .= ", parent_category_id";
+        $query .= ") values (?";
+        if(isset($parentID)) $query .= ",?";
+        $query .= ")";
+
+        $stmt = $this->prepare($query);
+        $types = 's';
+        if(isset($parentID)) {
+            $types .= 'i';
+            $stmt->bind_param($types, $name, $parentID);
+        }
+        else $stmt->bind_param($types, $name);
         
+        if(!$stmt->execute()){
+            throw new Exception("Couldn't add category to the database.");
+        }
+
+        $newCat = $this->getCategoryID($name);
+        return $newCat['category_id'];
     }
 
     /**
      * update category, essentially just the name hey...
      */
     public function updateCategory($newVal, $id){
-        
+        $query = "UPDATE categories SET category_name=? WHERE category_id=?";
+        $stmt = $this->prepare($query);
+        $stmt->bind_param('si', $newVal ,$id);
+
+        if(!$stmt->execute()){
+            throw new Exception("Couldn't remove category from database.");
+        }
     }
     
 
 
    public function updateProduct($updateData) {
-    // building the query
-    $query = "UPDATE products SET ";
-    $params = [];
-    $types = '';
-    $updates = [];
+        // building the query
+        $query = "UPDATE products SET ";
+        $params = [];
+        $types = '';
+        $updates = [];
 
-    // dynamic SET clauses with proper escaping
-    foreach ($updateData as $field => $value) {
-        if ($field !== 'upc' && $value !== null) {
-            // Wrap field names in backticks to handle reserved keywords
-            $escapedField = "`" . str_replace("`", "``", $field) . "`";
-            $updates[] = "$escapedField = ?";
-            $params[] = $value;
-            
-            //  type based on field
-            if ($field === 'category_id' || $field === 'supplier_id') {
-                $types .= 'i'; // integer
-            } else {
-                $types .= 's'; // string
+        // dynamic SET clauses with proper escaping
+        foreach ($updateData as $field => $value) {
+            if ($field !== 'upc' && $value !== null) {
+                // Wrap field names in backticks to handle reserved keywords
+                $escapedField = "`" . str_replace("`", "``", $field) . "`";
+                $updates[] = "$escapedField = ?";
+                $params[] = $value;
+                
+                //  type based on field
+                if ($field === 'category_id' || $field === 'supplier_id') {
+                    $types .= 'i'; // integer
+                } else {
+                    $types .= 's'; // string
+                }
             }
         }
+
+        // WHERE clause 
+        $query .= implode(', ', $updates) . " WHERE `upc` = ?";
+        $params[] = $updateData['upc'];
+        $types .= 'i'; // upc is integer
+
+        error_log("Update Query: " . $query); // debug logging
+        error_log("Params: " . print_r($params, true)); // debug logging
+
+        // Prepare and execute
+        $stmt = $this->conn->prepare($query);
+        if (!$stmt) {
+            error_log("Prepare error: " . $this->conn->error);
+            throw new Exception("Prepare failed: " . $this->conn->error);
+        }
+
+        if (!empty($params)) {
+            $stmt->bind_param($types, ...$params);
+        }
+
+        if (!$stmt->execute()) {
+            error_log("Execute error: " . $stmt->error);
+            throw new Exception("Execute failed: " . $stmt->error);
+        }
+
+        // Return true if any rows were affected
+        return $stmt->affected_rows > 0;
     }
-
-    // WHERE clause 
-    $query .= implode(', ', $updates) . " WHERE `upc` = ?";
-    $params[] = $updateData['upc'];
-    $types .= 'i'; // upc is integer
-
-    error_log("Update Query: " . $query); // debug logging
-    error_log("Params: " . print_r($params, true)); // debug logging
-
-    // Prepare and execute
-    $stmt = $this->conn->prepare($query);
-    if (!$stmt) {
-        error_log("Prepare error: " . $this->conn->error);
-        throw new Exception("Prepare failed: " . $this->conn->error);
-    }
-
-    if (!empty($params)) {
-        $stmt->bind_param($types, ...$params);
-    }
-
-    if (!$stmt->execute()) {
-        error_log("Execute error: " . $stmt->error);
-        throw new Exception("Execute failed: " . $stmt->error);
-    }
-
-    // Return true if any rows were affected
-    return $stmt->affected_rows > 0;
-}
     
     public function close() {
         $this->conn->close();
