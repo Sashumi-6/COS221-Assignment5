@@ -30,7 +30,7 @@ img {
 }
 
 #product-data {
-    background-color: rgba(26, 26, 26, 0.3);
+    background-color: #66615e57;
     display: flex;
     justify-content: space-between;
     flex-direction: column;
@@ -69,7 +69,7 @@ img {
     width: fit-content;
     gap: 1em;
     margin: 0px 2em;
-    background-color: rgba(26, 26, 26, 0.3);
+    background-color: #66615e57;
     border-radius: 10px;
     padding: 0.5em;
 }
