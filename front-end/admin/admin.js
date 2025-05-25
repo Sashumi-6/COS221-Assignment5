@@ -2,6 +2,17 @@
     - Add button functionality
     - How to edit users/products
     - Maybe change instead of using ID's maybe attributes for easier searching...
+    - Search (top right in the webpage)
+        How searching works:
+        User types something in search bar,
+        look for a user/product ie. search will search in both products & users
+        if nothin found, display "nothing found"
+
+    filters: (top left in webpage)
+        okay so it says 'filters' but its more sorting than it is filtering.
+        if theres time maybe change that semantic but,
+        How filtering (sorting) works:
+        only 1 filter can be active at a time
 */
 function productsUpdate(data) {
     let del_btn = $(`<div class="buttons"><button>Delete</button></div>`);
