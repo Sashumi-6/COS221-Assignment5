@@ -110,11 +110,22 @@ class Database {
     }
 
     /*
+    * Gets user information via their apikey, this is just to make api
+    * coding easier lowkey as well
+    */
+    public function getUserWithApikey($apikey){
+        $query = "SELECT * FROM u24676412_users WHERE api_key='{$apikey}'";
+        $result = $this->conn->query($query);
+        
+        return $result->fetch_assoc();
+    }
+
+    /*
      * Used to validate apikeys of logged in users
      */
 
     public function checkApiKey($apikey){
-        $query = "SELECT 1 FROM users WHERE api_key=?";
+        $query = "SELECT 1 FROM users WHERE apikey=?";
         $sqlQuery = $this->prepare($query);
         $sqlQuery->bind_param('s', $apikey);
         $sqlQuery->execute();
@@ -138,32 +149,44 @@ class Database {
         return $result->fetch_all(MYSQLI_ASSOC);
     }
 
+    
+
 
     /**
      * retrieves available categories (name, id [for now])
      */
     public function getCategories(){
+        $query = "SELECT category_id, category_name FROM categories";
+        $stmt = $this->prepare($query);
+        
+        if($stmt->execute()){
+            $result = $stmt->get_result();
+            return $result->fetch_all(MYSQLI_ASSOC);
+        }
+        else{
+            throw new Exception("Couldn't retrieve data from database.");
+        }
 
     }
 
     /**
-     * retrieves available categories (name, id [for now])
+     * removes category by id
      */
-    public function deleteCategory(){
+    public function deleteCategory($id){
         
     }
 
     /**
-     * retrieves available categories (name, id [for now])
+     * add a new product
      */
-    public function addCategory(){
+    public function addCategory($name, $parentID=null){
         
     }
 
     /**
-     * retrieves available categories (name, id [for now])
+     * update category, essentially just the name hey...
      */
-    public function updateCategory(){
+    public function updateCategory($newVal, $id){
         
     }
     

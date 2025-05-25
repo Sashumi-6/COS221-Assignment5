@@ -1,6 +1,6 @@
 <?php
     include('Config.php');
-
+    header('Content-Type: application/json');
     // requests made to the api must be in JSON and made with POST
     $input = json_decode(file_get_contents("php://input"), true);
     $dbConn = Database::connect(); // ensures singleton
@@ -29,7 +29,7 @@
                 $strHeader = "{$code} Internal Server Error";
                 break;
             default:
-                $strHeader = "Internal Server Error";
+                $strHeader = "500 Internal Server Error";
                 break;
         }
         
@@ -84,7 +84,7 @@
         $toReturn = ['valid' => true];
         if($input['type'] === 'Register'){
 
-            $nsRegex = "/^[a-zA-Z0-9]{2,}/";
+            $nsRegex = "/^[a-zA-Z0-9]{0,}/";
             $toReturn['name'] = (preg_match($nsRegex , $input["name"])) ? $input["name"] 
             : null;
             $toReturn['surname'] = (preg_match($nsRegex , $input["surname"])) ? $input["surname"] 
@@ -146,7 +146,8 @@
                         $GLOBALS['code'] = 200;
                         $status = true;
                         $message = [
-                            'apikey' => $apiKey
+                            'apikey' => $apiKey,
+                            'userType' => $user['user_type']
                         ];  
                     }
                 }
@@ -187,7 +188,8 @@
                 
                 $status = true;
                 $message = [
-                    'apikey' => $user['apikey']
+                    'apikey' => $user['apikey'],
+                    'userType' => $user['user_type']
                 ];
 
                 $GLOBALS['code'] = 200;
@@ -224,12 +226,24 @@
                 exit();
             }
         }
-        
+        $products = $dbConn->getAllProducts();
+        if($products){
+            $GLOBALS['code'] = 200;
+            $status = true;
+            $message = $products;
+        }
+        else{
+            $GLOBALS['code'] = 500;
+            $status = false;
+            $message = 'Could not get products';
+        }
     } else if ($input['type'] === 'UpdateProduct') {
     // Validate required fields
     if (!isset($input['upc']) || !is_numeric($input['upc'])) {
         $GLOBALS['code'] = 400;
-        respond(false, 'Valid upc is required', $GLOBALS['code']);
+        $status = false;
+        $message = 'Valid upc is required';
+        // respond(false, 'Valid upc is required', $GLOBALS['code']);
         exit();
     }
 
@@ -253,7 +267,9 @@
 
         if (empty($updateFields)) {
             $GLOBALS['code'] = 400;
-            respond(false, 'No fields provided for update', $GLOBALS['code']);
+            $status = false;
+            $message = 'No fields provided for update';
+            // respond(false, 'No fields provided for update', $GLOBALS['code']);
             exit();
         }
 
@@ -262,20 +278,85 @@
 
         if ($success) {
             $GLOBALS['code'] = 200;
-            respond(true, 'Product updated successfully', $GLOBALS['code']);
+            $status = true;
+            $message = 'Product updated successfully';
+            // respond(true, 'Product updated successfully', $GLOBALS['code']);
         } else {
             $GLOBALS['code'] = 404;
-            respond(false, 'Product not found or no changes made', $GLOBALS['code']);
+            $status = false;    
+            $message = 'Product not found or no changes made';
+            // respond(false, 'Product not found or no changes made', $GLOBALS['code']);
         }
 
-    } }
-    // catch (Exception $e) {
-    //     error_log("UpdateProduct Error: " . $e->getMessage());
-    //     $GLOBALS['code'] = 500;
-    //     respond(false, 'Server error: ' . $e->getMessage(), $GLOBALS['code']);
-    // }
+    } catch (Exception $e) {
+        error_log("UpdateProduct Error: " . $e->getMessage());
+        $GLOBALS['code'] = 500;
+        $status = false;
+        $message = 'Server error: ' . $e->getMessage();
+        // respond(false, 'Server error: ' . $e->getMessage(), $GLOBALS['code']);
+    }}
+    else if($input['type'] === 'Categories'){
+        if($dbConn->checkApiKey($input['apikey'])){
+            if($input['Operation'] === 'Add'){
+                $user = $dbConn->getUserWithApikey($input['apikey']);
+                if($user['user_type'] === 'Admin' || $user['user_type'] === 'Business'){
 
+                }
+                else{
+                    $GLOBALS['code'] = 403;
+                    $status = false;
+                    $message = "User cannot do the following operatio ";
+                }
+            }
+            else if($input['Operation'] === 'Delete'){
+                $user = $dbConn->getUserWithApikey($input['apikey']);
+                if($user['user_type'] === 'Admin' || $user['user_type'] === 'Business'){
 
+                }
+                else{
+                    $GLOBALS['code'] = 403;
+                    $status = false;
+                    $message = "User cannot do the following operatio ";
+                }
+            }
+            else if($input['Operation'] === 'Get'){
+                try{
+                    $data = $dbConn->getCategories();
+
+                    $GLOBALS['code'] = 200;
+                    $status = true;
+                    $message = $data;
+                }
+                catch(Exception $e){
+                    $GLOBALS['code'] = 500;
+                    $status = false;
+                    $message = $e->getMessage();
+                }
+            }
+            else if($input['Operation'] === 'Update'){
+                $user = $dbConn->getUserWithApikey($input['apikey']);
+                if($user['user_type'] === 'Admin' || $user['user_type'] === 'Business'){
+
+                }
+                else{
+                    $GLOBALS['code'] = 403;
+                    $status = false;
+                    $message = "User cannot do the following operatio ";
+                }
+            }
+            else{
+                $GLOBALS['code'] = 400;
+                $status = false;
+                $message = "Unknown Operation. Please specify an Operation";
+            }
+        }
+    }
+    else if($input['type'] === 'User'){
+
+    }
+    else if($input['type'] === 'Review'){
+
+    }
     else{
         if(empty($GLOBALS['code'])) $GLOBALS['code'] = 400;
         $status = false;
