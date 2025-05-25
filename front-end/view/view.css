@@ -1,0 +1,90 @@
+body {
+    background-image: url('../img/view-bg.svg');
+    background-repeat: no-repeat;
+    background-size: cover;
+}
+
+#view-container {
+    display: flex;
+    flex-direction: column;
+    margin: 1em;
+    align-items: center;
+}
+
+#product-details-container {
+    display: flex;
+    justify-content: space-evenly;
+    align-items: stretch;
+    gap: 1em;
+    margin: 2em 0px;
+}
+
+#product-image {
+    flex: 0 0 auto;
+}
+
+img {
+    display: block;
+    max-width: 450px;
+    max-width: 450px;
+}
+
+#product-data {
+    background-color: rgba(26, 26, 26, 0.3);
+    display: flex;
+    justify-content: space-between;
+    flex-direction: column;
+    font-size: 1.2em;
+    padding: 1.5em;
+    color: #F2F0EF;
+    border-radius: 10px;
+}
+
+#product-description {
+    /* 
+    TODO
+    Long descriptions might not display correct - if they dont,
+    the css to fix that should go here
+    */
+}
+
+#categories-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1em;
+}
+
+#categories-container a {
+    background-color: #66615E;
+    font-family: "Coda", system-ui;
+    padding: 0.2em 1em;
+    border-radius: 8px;
+}
+
+#prices-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    justify-self: center;
+    width: fit-content;
+    gap: 1em;
+    margin: 0px 2em;
+    background-color: rgba(26, 26, 26, 0.3);
+    border-radius: 10px;
+    padding: 0.5em;
+}
+
+.price-supplier-container {
+    font-size: 1.3em;
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+    padding: 0.8em;
+    background-color: #66615E;
+    border-radius: 8px;
+    color: #F2F0EF;
+}
+
+#review-container {
+
+}
