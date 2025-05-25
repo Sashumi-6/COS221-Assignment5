@@ -129,14 +129,43 @@ class Database {
      * 
      */
 
-     public function getAllProducts(){
+    public function getAllProducts(){
         $query = "SELECT * FROM products";
         $sqlQuery = $this->prepare($query);
         $sqlQuery->execute();
         $result = $sqlQuery->get_result();
         
         return $result->fetch_all(MYSQLI_ASSOC);
-     }
+    }
+
+
+    /**
+     * retrieves available categories (name, id [for now])
+     */
+    public function getCategories(){
+
+    }
+
+    /**
+     * retrieves available categories (name, id [for now])
+     */
+    public function deleteCategory(){
+        
+    }
+
+    /**
+     * retrieves available categories (name, id [for now])
+     */
+    public function addCategory(){
+        
+    }
+
+    /**
+     * retrieves available categories (name, id [for now])
+     */
+    public function updateCategory(){
+        
+    }
     
     public function close() {
         $this->conn->close();

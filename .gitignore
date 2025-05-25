@@ -1,1 +1,3 @@
 #This file is used to ignore specific changes in the repo that we do not want to track
+# Ignore a specific file
+notes.txt

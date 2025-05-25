@@ -203,7 +203,8 @@
             $status = false;
             $message = 'Contains invalid strings';
         }
-    } else if ($input['type'] === 'GetAllProducts') {
+    } 
+    else if ($input['type'] === 'GetAllProducts') {
         $validInput = validateInput($input);
         if(!$validInput['valid']){
             $GLOBALS['code'] = 400;
@@ -234,7 +235,8 @@
             $status = false;
             $message = 'Could not get products';
         }
-    } else if ($input['type'] === 'GetProduct') {
+    } 
+    else if ($input['type'] === 'GetProduct') {
         if(isset($input['product_id'])){
             $product = $dbConn->getProduct($input['product_id']);
             if($product){
@@ -253,6 +255,25 @@
             $message = 'Please specify product_id';
         }
 
+    }
+    else if($input['type'] === 'Categories'){
+        if($input['operation'] === 'Add'){
+
+        }
+        else if($input['operation'] === 'Delete'){
+
+        }
+        else if($input['operation'] === 'Get'){
+            
+        }
+        else if($input['operation'] === 'Update'){
+
+        }
+        else{
+            if(empty($GLOBALS['code'])) $GLOBALS['code'] = 400;
+            $status = false;
+            $message = "Unknown operation. Please specify an operation";
+        }
     }
     else{
         if(empty($GLOBALS['code'])) $GLOBALS['code'] = 400;
