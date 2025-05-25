@@ -138,6 +138,37 @@ class Database {
         return $result->fetch_all(MYSQLI_ASSOC);
     }
 
+
+    /**
+     * retrieves available categories (name, id [for now])
+     */
+    public function getCategories(){
+
+    }
+
+    /**
+     * retrieves available categories (name, id [for now])
+     */
+    public function deleteCategory(){
+        
+    }
+
+    /**
+     * retrieves available categories (name, id [for now])
+     */
+    public function addCategory(){
+        
+    }
+
+    /**
+     * retrieves available categories (name, id [for now])
+     */
+    public function updateCategory(){
+        
+    }
+    
+
+
    public function updateProduct($updateData) {
     // building the query
     $query = "UPDATE products SET ";
@@ -189,34 +220,6 @@ class Database {
     // Return true if any rows were affected
     return $stmt->affected_rows > 0;
 }
-
-    /**
-     * retrieves available categories (name, id [for now])
-     */
-    public function getCategories(){
-
-    }
-
-    /**
-     * retrieves available categories (name, id [for now])
-     */
-    public function deleteCategory(){
-        
-    }
-
-    /**
-     * retrieves available categories (name, id [for now])
-     */
-    public function addCategory(){
-        
-    }
-
-    /**
-     * retrieves available categories (name, id [for now])
-     */
-    public function updateCategory(){
-        
-    }
     
     public function close() {
         $this->conn->close();

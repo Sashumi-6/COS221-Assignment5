@@ -226,17 +226,15 @@
         }
         
     } else if ($input['type'] === 'UpdateProduct') {
-    // Validate required fields - now using upc as primary identifier
+    // Validate required fields
     if (!isset($input['upc']) || !is_numeric($input['upc'])) {
         $GLOBALS['code'] = 400;
-        $status = false;
-        $message = 'Valid upc is required';
-        // respond(false, 'Valid upc is required', $GLOBALS['code']);
+        respond(false, 'Valid upc is required', $GLOBALS['code']);
         exit();
     }
 
     try {
-        // Prepare update data based on table structure
+        // Prepare update data with proper field length limits
         $updateData = [
             'upc' => (int)$input['upc'],
             'product_name' => isset($input['product_name']) ? substr($input['product_name'], 0, 45) : null,
@@ -248,32 +246,14 @@
             'img_url' => isset($input['img_url']) ? substr($input['img_url'], 0, 45) : null
         ];
 
-        // Validate at least one field is being updated (excluding upc)
+        // Validate at least one field is being updated
         $updateFields = array_filter($updateData, function($value, $key) {
             return $key !== 'upc' && $value !== null;
         }, ARRAY_FILTER_USE_BOTH);
 
         if (empty($updateFields)) {
             $GLOBALS['code'] = 400;
-            $status = false;
-            $message = 'Could not get products';
-        }
-    } 
-    else if ($input['type'] === 'GetProduct') {
-        if(isset($input['product_id'])){
-            $product = $dbConn->getProduct($input['product_id']);
-            if($product){
-                $GLOBALS['code'] = 200;
-                $status = true;
-                $message = $product;
-            }
-            else{
-                $GLOBALS['code'] = 500;
-                $status = false;
-                $message = 'Could not get product';
-            }
-            $message = 'No fields provided for update';
-            // respond(false, 'No fields provided for update', $GLOBALS['code']);
+            respond(false, 'No fields provided for update', $GLOBALS['code']);
             exit();
         }
 
@@ -282,24 +262,20 @@
 
         if ($success) {
             $GLOBALS['code'] = 200;
-            $status = true;
-            $message = 'Product updated successfully';
-            // respond(true, 'Product updated successfully', $GLOBALS['code']);
+            respond(true, 'Product updated successfully', $GLOBALS['code']);
         } else {
             $GLOBALS['code'] = 404;
-            $status = false;    
-            $message = 'Product not found or no changes made';
-            // respond(false, 'Product not found or no changes made', $GLOBALS['code']);
+            respond(false, 'Product not found or no changes made', $GLOBALS['code']);
         }
 
-    } catch (Exception $e) {
-        $GLOBALS['code'] = 500;
-        $status = false;
-        $message = $e->getMessage();
-        // respond(false, 'Server error: ' . $e->getMessage(), $GLOBALS['code']);
-    } 
+    } }
+    // catch (Exception $e) {
+    //     error_log("UpdateProduct Error: " . $e->getMessage());
+    //     $GLOBALS['code'] = 500;
+    //     respond(false, 'Server error: ' . $e->getMessage(), $GLOBALS['code']);
+    // }
 
-}
+
     else{
         if(empty($GLOBALS['code'])) $GLOBALS['code'] = 400;
         $status = false;
