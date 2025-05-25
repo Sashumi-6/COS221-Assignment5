@@ -114,7 +114,7 @@ class Database {
     * coding easier lowkey as well
     */
     public function getUserWithApikey($apikey){
-        $query = "SELECT * FROM u24676412_users WHERE api_key='{$apikey}'";
+        $query = "SELECT * FROM users WHERE apikey='{$apikey}'";
         $result = $this->conn->query($query);
         
         return $result->fetch_assoc();
@@ -149,9 +149,6 @@ class Database {
         return $result->fetch_all(MYSQLI_ASSOC);
     }
 
-    
-
-
     /**
      * retrieves available categories (name, id [for now])
      */
@@ -169,10 +166,31 @@ class Database {
 
     }
 
+    public function getCategoryID($name){
+        $query = "SELECT category_id FROM categories WHERE category_name=?";
+        $stmt = $this->prepare($query);
+        $stmt->bind_param('s', $name);
+        
+        if($stmt->execute()){
+            $result = $stmt->get_result();
+            return $result->fetch_assoc();
+        }
+        else{
+            throw new Exception("Couldn't retrieve data from database.");
+        }
+    }
+
     /**
      * removes category by id
      */
     public function deleteCategory($id){
+        $query = "DELETE FROM categories WHERE category_id=?";
+        $stmt = $this->prepare($query);
+        $stmt->bind_param('i', $id);
+
+        if(!$stmt->execute()){
+            throw new Exception("Couldn't remove category from database.");
+        }
         
     }
 
@@ -180,69 +198,94 @@ class Database {
      * add a new product
      */
     public function addCategory($name, $parentID=null){
+        $query = "INSERT INTO categories (category_name" ;
+        if(isset($parentID)) $query .= ", parent_category_id";
+        $query .= ") values (?";
+        if(isset($parentID)) $query .= ",?";
+        $query .= ")";
+
+        $stmt = $this->prepare($query);
+        $types = 's';
+        if(isset($parentID)) {
+            $types .= 'i';
+            $stmt->bind_param($types, $name, $parentID);
+        }
+        else $stmt->bind_param($types, $name);
         
+        if(!$stmt->execute()){
+            throw new Exception("Couldn't add category to the database.");
+        }
+
+        $newCat = $this->getCategoryID($name);
+        return $newCat['category_id'];
     }
 
     /**
      * update category, essentially just the name hey...
      */
     public function updateCategory($newVal, $id){
-        
+        $query = "UPDATE categories SET category_name=? WHERE category_id=?";
+        $stmt = $this->prepare($query);
+        $stmt->bind_param('si', $newVal ,$id);
+
+        if(!$stmt->execute()){
+            throw new Exception("Couldn't remove category from database.");
+        }
     }
     
 
 
    public function updateProduct($updateData) {
-    // building the query
-    $query = "UPDATE products SET ";
-    $params = [];
-    $types = '';
-    $updates = [];
+        // building the query
+        $query = "UPDATE products SET ";
+        $params = [];
+        $types = '';
+        $updates = [];
 
-    // dynamic SET clauses with proper escaping
-    foreach ($updateData as $field => $value) {
-        if ($field !== 'upc' && $value !== null) {
-            // Wrap field names in backticks to handle reserved keywords
-            $escapedField = "`" . str_replace("`", "``", $field) . "`";
-            $updates[] = "$escapedField = ?";
-            $params[] = $value;
-            
-            //  type based on field
-            if ($field === 'category_id' || $field === 'supplier_id') {
-                $types .= 'i'; // integer
-            } else {
-                $types .= 's'; // string
+        // dynamic SET clauses with proper escaping
+        foreach ($updateData as $field => $value) {
+            if ($field !== 'upc' && $value !== null) {
+                // Wrap field names in backticks to handle reserved keywords
+                $escapedField = "`" . str_replace("`", "``", $field) . "`";
+                $updates[] = "$escapedField = ?";
+                $params[] = $value;
+                
+                //  type based on field
+                if ($field === 'category_id' || $field === 'supplier_id') {
+                    $types .= 'i'; // integer
+                } else {
+                    $types .= 's'; // string
+                }
             }
         }
+
+        // WHERE clause 
+        $query .= implode(', ', $updates) . " WHERE `upc` = ?";
+        $params[] = $updateData['upc'];
+        $types .= 'i'; // upc is integer
+
+        error_log("Update Query: " . $query); // debug logging
+        error_log("Params: " . print_r($params, true)); // debug logging
+
+        // Prepare and execute
+        $stmt = $this->conn->prepare($query);
+        if (!$stmt) {
+            error_log("Prepare error: " . $this->conn->error);
+            throw new Exception("Prepare failed: " . $this->conn->error);
+        }
+
+        if (!empty($params)) {
+            $stmt->bind_param($types, ...$params);
+        }
+
+        if (!$stmt->execute()) {
+            error_log("Execute error: " . $stmt->error);
+            throw new Exception("Execute failed: " . $stmt->error);
+        }
+
+        // Return true if any rows were affected
+        return $stmt->affected_rows > 0;
     }
-
-    // WHERE clause 
-    $query .= implode(', ', $updates) . " WHERE `upc` = ?";
-    $params[] = $updateData['upc'];
-    $types .= 'i'; // upc is integer
-
-    error_log("Update Query: " . $query); // debug logging
-    error_log("Params: " . print_r($params, true)); // debug logging
-
-    // Prepare and execute
-    $stmt = $this->conn->prepare($query);
-    if (!$stmt) {
-        error_log("Prepare error: " . $this->conn->error);
-        throw new Exception("Prepare failed: " . $this->conn->error);
-    }
-
-    if (!empty($params)) {
-        $stmt->bind_param($types, ...$params);
-    }
-
-    if (!$stmt->execute()) {
-        error_log("Execute error: " . $stmt->error);
-        throw new Exception("Execute failed: " . $stmt->error);
-    }
-
-    // Return true if any rows were affected
-    return $stmt->affected_rows > 0;
-}
     
     public function close() {
         $this->conn->close();
