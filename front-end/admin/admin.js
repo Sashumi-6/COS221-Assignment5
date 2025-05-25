@@ -1,6 +1,7 @@
 /* TODO
     - Add button functionality
     - How to edit users/products
+    - Maybe change instead of using ID's maybe attributes for easier searching...
 */
 function productsUpdate(data) {
     let del_btn = $(`<div class="buttons"><button>Delete</button></div>`);
@@ -73,6 +74,8 @@ function sideContentUpdate(selector, data) {
     appendableComponent.append(main);
 }
 
+// TODO
+//  Need to make it that everywhere that Category "X" is refrenced (Such as in the products) is updated
 function editSideContent(event) {
     let id = event.data.id;
     let type = event.data.type;
