@@ -11,6 +11,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Coda:wght@400;800&family=Roboto:ital,wdth,wght@0,75..100,100..900;1,75..100,100..900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
     <link rel="stylesheet" href="../global/styles.css">
     <link rel="stylesheet" href="view.css">
 
@@ -26,13 +27,6 @@
                 <a style="font-size: 1.4em;">Product Name</a>
                 <a id="product-description">Lorem ipsum dolor sit, amet consectetur adipisicing elit. Aliquid recusandae quibusdam ab dolore sint dolorem sequi impedit quaerat dolorum qui. Saepe eius porro quis ad explicabo quibusdam quas, veritatis dolorem.</a>
                 <div id="categories-container">
-                    <a>Catergory</a>
-                    <a>Catergory</a>
-                    <a>Catergory</a>
-                    <a>Catergory</a>
-                    <a>Catergory</a>
-                    <a>Catergory</a>
-                    <a>Catergory</a>
                     <a>Catergory</a>
                     <a>Catergory</a>
                 </div>
@@ -55,8 +49,57 @@
                 <a>R1000</a>
             </div>
         </div>
+
+        <!-- TODO only numeric-rating should be changed dynamically -->
         <div id="review-container">
-            
+            <div id="overall-review">
+                <a id="title">Overall Review</a>
+                <div class="star-rating" id="overall-1">
+                    <a>5</a>
+                    <span class="fa fa-star checked"></span>
+                    <a class="numeric-rating">1</a>
+                </div>
+                <div class="star-rating" id="overall-2">
+                    <a>4</a>
+                    <span class="fa fa-star checked"></span>
+                    <a class="numeric-rating">12</a>
+                </div>
+                <div class="star-rating" id="overall-3">
+                    <a>3</a>
+                    <span class="fa fa-star checked"></span>
+                    <a class="numeric-rating">123</a>
+                </div>
+                <div class="star-rating" id="overall-4">
+                    <a>2</a>
+                    <span class="fa fa-star checked"></span>
+                    <a class="numeric-rating">1234</a>
+                </div>
+                <div class="star-rating" id="overall-5">
+                    <a>1</a>
+                    <span class="fa fa-star checked"></span>
+                    <a class="numeric-rating">12345</a>
+                </div>
+            </div>
+
+            <!-- TODO Add styling to submit button -->
+            <div id="make-review">
+                <a id="title">Review this item</a>
+                <div id="review-rating">
+                    <span id="1" class="fa fa-star checked"></span>
+                    <span id="2" class="fa fa-star checked"></span>
+                    <span id="3" class="fa fa-star checked"></span>
+                    <span id="4" class="fa fa-star"></span>
+                    <span id="5" class="fa fa-star"></span>
+                </div>
+                <textarea id="review-content" name="review-area" rows="8" cols="50"></textarea>
+                <button id="submit">Submit</button>
+            </div>
+
+            <!-- The src will be dynamic and pass thru the product id to get that products reviews -->
+            <div id="frame-container">
+                <a id="title">What others say</a>
+                <iframe src="../user/review/review.html" title="product reviews"></iframe>
+            </div>
         </div>
     </div>
 </body>
