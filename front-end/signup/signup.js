@@ -2,7 +2,7 @@ document.addEventListener('DOMContentLoaded', function(){
     const signupForm = document.getElementById('signup-container');
     const goBackButton = document.getElementById('goback-button');
 
-    signupForm.addEventListener('click', function(event){
+    signupForm.addEventListener('submit', function(event){
         event.preventDefault(); //prevents default form submission
 
         if(validateForm()){
@@ -11,10 +11,6 @@ document.addEventListener('DOMContentLoaded', function(){
 
     });
 
-    goBackButton.addEventListener('click', function (event) {
-        event.preventDefault();
-        window.location.href = '../login.html'; // or whatever page you want
-    });
 });
 
 function validateForm(){
