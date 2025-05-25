@@ -215,113 +215,115 @@
         }
     } 
     else if ($input['type'] === 'GetAllProducts') {
-    $validInput = validateInput($input);
-    if(!$validInput['valid']){
-        $GLOBALS['code'] = 400;
-        $status = false;
-        $message = 'Invalid input';
-    } else {
-        try {
-            // Extract search parameters
-            $searchParams = [
-                'upc' => isset($input['upc']) ? (int)$input['upc'] : null,
-                'supplier_id' => isset($input['supplier_id']) ? (int)$input['supplier_id'] : null,
-                'product_name' => isset($input['product_name']) ? $input['product_name'] : null,
-                'brand' => isset($input['brand']) ? $input['brand'] : null,
-                'category_id' => isset($input['category_id']) ? (int)$input['category_id'] : null,
-                'include_subcategories' => isset($input['include_subcategories']) ? 
-                                        filter_var($input['include_subcategories'], FILTER_VALIDATE_BOOLEAN) : 
-                                        false
-            ];
-
-            // Handle subcategories if requested
-            if ($searchParams['category_id'] && $searchParams['include_subcategories']) {
-                $categoryIds = $dbConn->getCategoryWithDescendants($searchParams['category_id']);
-                if (!empty($categoryIds)) {
-                    $searchParams['category_ids'] = $categoryIds;
-                    unset($searchParams['category_id']);
-                }
-            }
-
-            $products = $dbConn->getAllProducts($searchParams);
-
-            if(!empty($products)){
-                $GLOBALS['code'] = 200;
-                $status = true;
-                $message = [
-                    'count' => count($products),
-                    'products' => $products
+        $validInput = validateInput($input);
+        if(!$validInput['valid']){
+            $GLOBALS['code'] = 400;
+            $status = false;
+            $message = 'Invalid input';
+        } else {
+            try {
+                // Extract search parameters
+                $searchParams = [
+                    'upc' => isset($input['upc']) ? (int)$input['upc'] : null,
+                    'supplier_id' => isset($input['supplier_id']) ? (int)$input['supplier_id'] : null,
+                    'product_name' => isset($input['product_name']) ? $input['product_name'] : null,
+                    'brand' => isset($input['brand']) ? $input['brand'] : null,
+                    'category_id' => isset($input['category_id']) ? (int)$input['category_id'] : null,
+                    'include_subcategories' => isset($input['include_subcategories']) ? 
+                                            filter_var($input['include_subcategories'], FILTER_VALIDATE_BOOLEAN) : 
+                                            false
                 ];
-            } else {
-                $GLOBALS['code'] = 404;
-                $status = false;
-                $message = 'No products found matching your criteria';
-            }
 
-        } catch (Exception $e) {
-            error_log("GetAllProducts Error: " . $e->getMessage());
-            $GLOBALS['code'] = 500;
-            $status = false;
-            $message = 'Could not get products';
-        }
-    } else if ($input['type'] === 'UpdateProduct') {
-    // Validate required fields
-    if (!isset($input['upc']) || !is_numeric($input['upc'])) {
-        $GLOBALS['code'] = 400;
-        $status = false;
-        $message = 'Valid upc is required';
-        // respond(false, 'Valid upc is required', $GLOBALS['code']);
-        exit();
+                // Handle subcategories if requested
+                if ($searchParams['category_id'] && $searchParams['include_subcategories']) {
+                    $categoryIds = $dbConn->getCategoryWithDescendants($searchParams['category_id']);
+                    if (!empty($categoryIds)) {
+                        $searchParams['category_ids'] = $categoryIds;
+                        unset($searchParams['category_id']);
+                    }
+                }
+
+                $products = $dbConn->getAllProducts($searchParams);
+
+                if(!empty($products)){
+                    $GLOBALS['code'] = 200;
+                    $status = true;
+                    $message = [
+                        'count' => count($products),
+                        'products' => $products
+                    ];
+                } else {
+                    $GLOBALS['code'] = 404;
+                    $status = false;
+                    $message = 'No products found matching your criteria';
+                }
+
+            } catch (Exception $e) {
+                error_log("GetAllProducts Error: " . $e->getMessage());
+                $GLOBALS['code'] = 500;
+                $status = false;
+                $message = 'Could not get products';
+            }
+        } 
     }
-
-        try {
-            // Prepare update data with proper field length limits
-            $updateData = [
-                'upc' => (int)$input['upc'],
-                'product_name' => isset($input['product_name']) ? substr($input['product_name'], 0, 45) : null,
-                'desc' => isset($input['desc']) ? substr($input['desc'], 0, 300) : null,
-                'brand' => isset($input['brand']) ? substr($input['brand'], 0, 45) : null,
-                'category_id' => isset($input['category_id']) ? (int)$input['category_id'] : null,
-                'supplier_id' => isset($input['supplier_id']) ? (int)$input['supplier_id'] : null,
-                'dimensions' => isset($input['dimensions']) ? substr($input['dimensions'], 0, 45) : null,
-                'img_url' => isset($input['img_url']) ? substr($input['img_url'], 0, 45) : null
-            ];
-
-            // Validate at least one field is being updated
-            $updateFields = array_filter($updateData, function($value, $key) {
-                return $key !== 'upc' && $value !== null;
-            }, ARRAY_FILTER_USE_BOTH);
-
-            if (empty($updateFields)) {
-                $GLOBALS['code'] = 400;
-                $status = false;
-                $message = 'No fields provided for update';
-                // respond(false, 'No fields provided for update', $GLOBALS['code']);
-                exit();
-            }
-
-            // Perform the update
-            $success = $dbConn->updateProduct($updateData);
-
-            if ($success) {
-                $GLOBALS['code'] = 200;
-                $status = true;
-                $message = 'Product updated successfully';
-                // respond(true, 'Product updated successfully', $GLOBALS['code']);
-            } else {
-                $GLOBALS['code'] = 404;
-                $status = false;    
-                $message = 'Product not found or no changes made';
-                // respond(false, 'Product not found or no changes made', $GLOBALS['code']);
-            }
-
-        } catch (Exception $e) {
-            error_log("UpdateProduct Error: " . $e->getMessage());
-            $GLOBALS['code'] = 500;
+    else if ($input['type'] === 'UpdateProduct') {
+        // Validate required fields
+        if (!isset($input['upc']) || !is_numeric($input['upc'])) {
+            $GLOBALS['code'] = 400;
             $status = false;
-            $message = 'Server error: ' . $e->getMessage();
-            // respond(false, 'Server error: ' . $e->getMessage(), $GLOBALS['code']);
+            $message = 'Valid upc is required';
         }
+        else{
+            try {
+            // Prepare update data with proper field length limits
+                $updateData = [
+                    'upc' => (int)$input['upc'],
+                    'product_name' => isset($input['product_name']) ? substr($input['product_name'], 0, 45) : null,
+                    'desc' => isset($input['desc']) ? substr($input['desc'], 0, 300) : null,
+                    'brand' => isset($input['brand']) ? substr($input['brand'], 0, 45) : null,
+                    'category_id' => isset($input['category_id']) ? (int)$input['category_id'] : null,
+                    'supplier_id' => isset($input['supplier_id']) ? (int)$input['supplier_id'] : null,
+                    'dimensions' => isset($input['dimensions']) ? substr($input['dimensions'], 0, 45) : null,
+                    'img_url' => isset($input['img_url']) ? substr($input['img_url'], 0, 45) : null
+                ];
+
+                // Validate at least one field is being updated
+                $updateFields = array_filter($updateData, function($value, $key) {
+                    return $key !== 'upc' && $value !== null;
+                }, ARRAY_FILTER_USE_BOTH);
+
+                if (empty($updateFields)) {
+                    $GLOBALS['code'] = 400;
+                    $status = false;
+                    $message = 'No fields provided for update';
+                    // respond(false, 'No fields provided for update', $GLOBALS['code']);
+                    exit();
+                }
+
+                // Perform the update
+                $success = $dbConn->updateProduct($updateData);
+
+                if ($success) {
+                    $GLOBALS['code'] = 200;
+                    $status = true;
+                    $message = 'Product updated successfully';
+                    // respond(true, 'Product updated successfully', $GLOBALS['code']);
+                } else {
+                    $GLOBALS['code'] = 404;
+                    $status = false;    
+                    $message = 'Product not found or no changes made';
+                    // respond(false, 'Product not found or no changes made', $GLOBALS['code']);
+                }
+
+            } catch (Exception $e) {
+                error_log("UpdateProduct Error: " . $e->getMessage());
+                $GLOBALS['code'] = 500;
+                $status = false;
+                $message = 'Server error: ' . $e->getMessage();
+                // respond(false, 'Server error: ' . $e->getMessage(), $GLOBALS['code']);
+            }
+        }
+        
     }
     else if($input['type'] === 'Categories'){
         if($dbConn->checkApiKey($input['apikey'])){
