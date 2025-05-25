@@ -1,6 +1,6 @@
 <?php
     include('Config.php');
-
+    header('Content-Type: application/json');
     // requests made to the api must be in JSON and made with POST
     $input = json_decode(file_get_contents("php://input"), true);
     $dbConn = Database::connect(); // ensures singleton
@@ -84,7 +84,7 @@
         $toReturn = ['valid' => true];
         if($input['type'] === 'Register'){
 
-            $nsRegex = "/^[a-zA-Z0-9]{2,}/";
+            $nsRegex = "/^[a-zA-Z0-9]{0,}/";
             $toReturn['name'] = (preg_match($nsRegex , $input["name"])) ? $input["name"] 
             : null;
             $toReturn['surname'] = (preg_match($nsRegex , $input["surname"])) ? $input["surname"] 
@@ -146,7 +146,8 @@
                         $GLOBALS['code'] = 200;
                         $status = true;
                         $message = [
-                            'apikey' => $apiKey
+                            'apikey' => $apiKey,
+                            'userType' => $user['user_type']
                         ];  
                     }
                 }
@@ -187,7 +188,8 @@
                 
                 $status = true;
                 $message = [
-                    'apikey' => $user['apikey']
+                    'apikey' => $user['apikey'],
+                    'userType' => $user['user_type']
                 ];
 
                 $GLOBALS['code'] = 200;
@@ -236,44 +238,67 @@
             $message = 'Could not get products';
         }
     } 
-    else if ($input['type'] === 'GetProduct') {
-        if(isset($input['product_id'])){
-            $product = $dbConn->getProduct($input['product_id']);
-            if($product){
-                $GLOBALS['code'] = 200;
-                $status = true;
-                $message = $product;
+    else if($input['type'] === 'Categories'){
+        if($dbConn->checkApiKey($input['apikey'])){
+            if($input['Operation'] === 'Add'){
+                $user = $dbConn->getUserWithApikey($input['apikey']);
+                if($user['user_type'] === 'Admin' || $user['user_type'] === 'Business'){
+
+                }
+                else{
+                    $GLOBALS['code'] = 403;
+                    $status = false;
+                    $message = "User cannot do the following operatio ";
+                }
+            }
+            else if($input['Operation'] === 'Delete'){
+                $user = $dbConn->getUserWithApikey($input['apikey']);
+                if($user['user_type'] === 'Admin' || $user['user_type'] === 'Business'){
+
+                }
+                else{
+                    $GLOBALS['code'] = 403;
+                    $status = false;
+                    $message = "User cannot do the following operatio ";
+                }
+            }
+            else if($input['Operation'] === 'Get'){
+                try{
+                    $data = $dbConn->getCategories();
+
+                    $GLOBALS['code'] = 200;
+                    $status = true;
+                    $message = $data;
+                }
+                catch(Exception $e){
+                    $GLOBALS['code'] = 500;
+                    $status = false;
+                    $message = $e->getMessage();
+                }
+            }
+            else if($input['Operation'] === 'Update'){
+                $user = $dbConn->getUserWithApikey($input['apikey']);
+                if($user['user_type'] === 'Admin' || $user['user_type'] === 'Business'){
+
+                }
+                else{
+                    $GLOBALS['code'] = 403;
+                    $status = false;
+                    $message = "User cannot do the following operatio ";
+                }
             }
             else{
-                $GLOBALS['code'] = 500;
+                $GLOBALS['code'] = 400;
                 $status = false;
-                $message = 'Could not get product';
+                $message = "Unknown Operation. Please specify an Operation";
             }
-        } else {
-            $GLOBALS['code'] = 400;
-            $status = false;
-            $message = 'Please specify product_id';
         }
+    }
+    else if($input['type'] === 'User'){
 
     }
-    else if($input['type'] === 'Categories'){
-        if($input['operation'] === 'Add'){
+    else if($input['type'] === 'Review'){
 
-        }
-        else if($input['operation'] === 'Delete'){
-
-        }
-        else if($input['operation'] === 'Get'){
-            
-        }
-        else if($input['operation'] === 'Update'){
-
-        }
-        else{
-            if(empty($GLOBALS['code'])) $GLOBALS['code'] = 400;
-            $status = false;
-            $message = "Unknown operation. Please specify an operation";
-        }
     }
     else{
         if(empty($GLOBALS['code'])) $GLOBALS['code'] = 400;
