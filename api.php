@@ -203,6 +203,56 @@
             $status = false;
             $message = 'Contains invalid strings';
         }
+    } else if ($input['type'] === 'GetAllProducts') {
+        $validInput = validateInput($input);
+        if(!$validInput['valid']){
+            $GLOBALS['code'] = 400;
+            $status = false;
+            $message = 'Invalid input';
+            respond($status, $message, $GLOBALS['code']);
+            exit();
+        } else {
+            try {
+                
+            } catch (Exception $e) {
+                $GLOBALS['code'] = 500;
+                $status = false;
+                $message = "No Products found";
+                $message = $e->getMessage();
+                respond($status, $message, $GLOBALS['code']);
+                exit();
+            }
+        }
+        $products = $dbConn->getAllProducts();
+        if($products){
+            $GLOBALS['code'] = 200;
+            $status = true;
+            $message = $products;
+        }
+        else{
+            $GLOBALS['code'] = 500;
+            $status = false;
+            $message = 'Could not get products';
+        }
+    } else if ($input['type'] === 'GetProduct') {
+        if(isset($input['product_id'])){
+            $product = $dbConn->getProduct($input['product_id']);
+            if($product){
+                $GLOBALS['code'] = 200;
+                $status = true;
+                $message = $product;
+            }
+            else{
+                $GLOBALS['code'] = 500;
+                $status = false;
+                $message = 'Could not get product';
+            }
+        } else {
+            $GLOBALS['code'] = 400;
+            $status = false;
+            $message = 'Please specify product_id';
+        }
+
     }
     else{
         if(empty($GLOBALS['code'])) $GLOBALS['code'] = 400;

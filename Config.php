@@ -128,6 +128,15 @@ class Database {
      * Function to return get products
      * 
      */
+
+     public function getAllProducts(){
+        $query = "SELECT * FROM products";
+        $sqlQuery = $this->prepare($query);
+        $sqlQuery->execute();
+        $result = $sqlQuery->get_result();
+        
+        return $result->fetch_all(MYSQLI_ASSOC);
+     }
     
     public function close() {
         $this->conn->close();
