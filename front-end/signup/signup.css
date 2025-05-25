@@ -93,3 +93,12 @@ body {
     0 4px 0 0 #cacaca,
     0 4px 6px 0 #cecece;
 }
+#signup-error {
+    color: #ff4d4d;
+    font-size: 1rem;
+    width: 100%;
+    text-align: center;
+    margin-top: 1em;
+    z-index: 1;
+    position: relative;
+}
