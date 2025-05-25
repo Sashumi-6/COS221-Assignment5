@@ -129,7 +129,7 @@ class Database {
      * 
      */
 
-       public function getAllProducts(){
+    public function getAllProducts(){
         $query = "SELECT * FROM products";
         $sqlQuery = $this->prepare($query);
         $sqlQuery->execute();
@@ -189,6 +189,34 @@ class Database {
     // Return true if any rows were affected
     return $stmt->affected_rows > 0;
 }
+
+    /**
+     * retrieves available categories (name, id [for now])
+     */
+    public function getCategories(){
+
+    }
+
+    /**
+     * retrieves available categories (name, id [for now])
+     */
+    public function deleteCategory(){
+        
+    }
+
+    /**
+     * retrieves available categories (name, id [for now])
+     */
+    public function addCategory(){
+        
+    }
+
+    /**
+     * retrieves available categories (name, id [for now])
+     */
+    public function updateCategory(){
+        
+    }
     
     public function close() {
         $this->conn->close();

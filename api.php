@@ -203,7 +203,8 @@
             $status = false;
             $message = 'Contains invalid strings';
         }
-    } else if ($input['type'] === 'GetAllProducts') {
+    } 
+    else if ($input['type'] === 'GetAllProducts') {
         $validInput = validateInput($input);
         if(!$validInput['valid']){
             $GLOBALS['code'] = 400;
@@ -255,6 +256,22 @@
         if (empty($updateFields)) {
             $GLOBALS['code'] = 400;
             $status = false;
+            $message = 'Could not get products';
+        }
+    } 
+    else if ($input['type'] === 'GetProduct') {
+        if(isset($input['product_id'])){
+            $product = $dbConn->getProduct($input['product_id']);
+            if($product){
+                $GLOBALS['code'] = 200;
+                $status = true;
+                $message = $product;
+            }
+            else{
+                $GLOBALS['code'] = 500;
+                $status = false;
+                $message = 'Could not get product';
+            }
             $message = 'No fields provided for update';
             // respond(false, 'No fields provided for update', $GLOBALS['code']);
             exit();
