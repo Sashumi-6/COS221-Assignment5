@@ -24,8 +24,6 @@ html, body {
   justify-content: center;
   align-items: center;
   gap: 90px;
-  margin: 40px auto; 
-  padding: 30px;
 }
 
 .product-card {
@@ -230,11 +228,6 @@ html, body {
     0 4px 0 0 #cacaca,
     0 4px 6px 0 #cecece;
 }
-
-/* #admin-container {
-    display: flex;
-    flex-direction: column;
-} */
 
 #user-top-bar {
     background-image: url(../img/low-poly-grid-haikei.svg);
