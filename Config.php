@@ -365,6 +365,50 @@ class Database {
         return $this->conn->insert_id; // Return the ID of the newly inserted supplier
     }   
 
+    public function addRetailer($name, $website, $logo_url, $location, $contact_email) {
+        $query = "INSERT INTO retailers (retailer_name, website, logo_url, location, contact_email) VALUES (?, ?, ?, ?, ?)";
+        $stmt = $this->prepare($query);
+        $stmt->bind_param('sssss', $name, $website, $logo_url, $location, $contact_email);
+        
+        if (!$stmt->execute()) {
+            throw new Exception("Couldn't add retailer to the database.");
+        }
+
+        return $this->conn->insert_id; // Return the ID of the newly inserted retailer
+    }
+
+    public function getAllRetailers() {
+        $query = "SELECT * FROM retailers";
+        $stmt = $this->prepare($query);
+        
+        if ($stmt->execute()) {
+            $result = $stmt->get_result();
+            return $result->fetch_all(MYSQLI_ASSOC);
+        } else {
+            throw new Exception("Couldn't retrieve retailers from database.");
+        }
+    }
+
+    public function updateRetailer($retailerId, $name, $website, $logo_url, $location, $contact_email) {
+        $query = "UPDATE retailers SET retailer_name = ?, website = ?, logo_url = ?, location = ?, contact_email = ? WHERE retailer_id = ?";
+        $stmt = $this->prepare($query);
+        $stmt->bind_param('sssssi', $name, $website, $logo_url, $location, $contact_email, $retailerId);
+        
+        if (!$stmt->execute()) {
+            throw new Exception("Couldn't update retailer in the database.");
+        }
+    }
+
+    public function deleteRetailer($retailerId) {
+        $query = "DELETE FROM retailers WHERE retailer_id = ?";
+        $stmt = $this->prepare($query);
+        $stmt->bind_param('i', $retailerId);
+        
+        if (!$stmt->execute()) {
+            throw new Exception("Couldn't delete retailer from the database.");
+        }
+    }
+
     /**
      * add a new product
      */
