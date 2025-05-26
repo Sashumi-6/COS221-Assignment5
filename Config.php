@@ -340,16 +340,16 @@ class Database {
 
     }
 
-public function getAllSuppliers() {
-    $query = "SELECT supplier_id, supplier_name, contact_info FROM suppliers";
-    $stmt = $this->prepare($query);
-    if ($stmt->execute()) {
-        $result = $stmt->get_result();
-        return $result->fetch_all(MYSQLI_ASSOC);
-    } else {
-        throw new Exception("Couldn't retrieve suppliers from database.");
-    }
-}
+// public function getAllSuppliers() {
+//     $query = "SELECT supplier_id, supplier_name, contact_info FROM suppliers";
+//     $stmt = $this->prepare($query);
+//     if ($stmt->execute()) {
+//         $result = $stmt->get_result();
+//         return $result->fetch_all(MYSQLI_ASSOC);
+//     } else {
+//         throw new Exception("Couldn't retrieve suppliers from database.");
+//     }
+// }
 /**
      * add a new supplier
      */
@@ -574,7 +574,7 @@ public function getAllSuppliers() {
      * gets supplier by their name..., to make coding easier on the api end
      */
     public function getSupplier($supName){
-        $query = "SELECT * FROM suppliers WHERE supplier_name=?";
+        $query = "SELECT * FROM suppliers WHERE supplier_name = ?";
         $sqlQuery = $this->prepare($query);
         $sqlQuery->bind_param('s', $supName);
         $sqlQuery->execute();
