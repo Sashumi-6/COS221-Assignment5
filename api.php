@@ -374,8 +374,7 @@
             }
         }
 
-    } 
-    else if ($input['type'] === 'Categories') {
+    } else if ($input['type'] === 'Categories') {
         if ($dbConn->checkApiKey($input['apikey'])) {
             if ($input['operation'] === 'Add') {
                 $user = $dbConn->getUserWithApikey($input['apikey']);
@@ -718,10 +717,192 @@
     }
     else {
         if (empty($GLOBALS['code']))
+            } catch (Exception $e) {
+                $GLOBALS['code'] = 500;
+                $status = false;
+                $message = "Error deleting supplier: " . $e->getMessage();
+            }
+        } else {
+            $GLOBALS['code'] = 403;
+            $status = false;
+            $message = "User does not have permission to delete suppliers";
+        }
+    } else {
+        $GLOBALS['code'] = 401;
+        $status = false;
+        $message = "Invalid API key";
+    }
+    } 
+    
+    else if($input['type'] === 'Suppliers'){
+        if($dbConn->checkApiKey($input['apikey'])){
+            $user = $dbConn->getUserWithApikey($input['apikey']);
+            if($user['user_type'] === 'Admin'){
+                if($input['operation'] === 'Get'){
+                    try{
+                        $data = $dbConn->getAllSuppliers();
+
+                        $GLOBALS['code'] = 200;
+                        $status = true;
+                        $message = $data;
+                    }
+                    catch(Exception $e){
+                        $GLOBALS['code'] = 500;
+                        $status = false;
+                        $message = $e->getMessage();
+                    }
+                }
+                else if($input['operation'] === 'Delete'){
+                    try{
+                        $GLOBALS['code'] = 503;
+                        $status = false;
+                        $message = "Still working on it";
+                    }
+                    catch(Exception $e){
+                        $GLOBALS['code'] = 500;
+                        $status = false;
+                        $message = $e->getMessage();
+                    }
+                }
+                else if($input['operation'] === 'Update'){
+                    try{
+                        $GLOBALS['code'] = 503;
+                        $status = false;
+                        $message = "Still working on it";
+                    }
+                    catch(Exception $e){
+                        $GLOBALS['code'] = 500;
+                        $status = false;
+                        $message = $e->getMessage();
+                    }
+                }
+                else{
+                    $GLOBALS['code'] = 400;
+                    $status = false;
+                    $message = "Unknown Operation. Please specify an Operation";
+                }
+            }
+            else{
+                $GLOBALS['code'] = 403;
+                $status = false;
+                $message = "User cannot do the following operation.";
+            }
+        }
+        else{
+            $GLOBALS['code'] = 401;
+            $status = false;
+            $message = "Apikey is invalid";
+        }
+    } else if ($input['type'] === 'addRetailer') {
+        if ($dbConn->checkApiKey($input['apikey'])) {
+            $user = $dbConn->getUserWithApikey($input['apikey']);
+            if ($user['user_type'] === 'Admin') {
+                try {
+                    $name = $input['retailer_name'];
+                    $website = $input['website'];
+                    $logo_url = $input['logo_url'];
+                    $location = $input['location'];
+                    $contact_email = $input['contact_email'];
+
+                    // Add retailer
+                    $dbConn->addRetailer($name, $website, $logo_url, $location, $contact_email);
+                    $GLOBALS['code'] = 201;
+                    $status = true;
+                    $message = "Retailer added successfully";
+
+                } catch (Exception $e) {
+                    $GLOBALS['code'] = 500;
+                    $status = false;
+                    $message = "Error adding retailer: " . $e->getMessage();
+                }
+            } else {
+                $GLOBALS['code'] = 403;
+                $status = false;
+                $message = "User does not have permission to add retailers";
+            }
+        } else {
+            $GLOBALS['code'] = 401;
+            $status = false;
+            $message = "Invalid API key";
+        }
+    } else if ($input['type'] === 'GetAllRetailers') {
+        if ($dbConn->checkApiKey($input['apikey'])) {
+            try {
+                $retailers = $dbConn->getAllRetailers();
+                if (!empty($retailers)) {
+                    $GLOBALS['code'] = 200;
+                    $status = true;
+                    $message = $retailers;
+                } else {
+                    $GLOBALS['code'] = 404;
+                    $status = false;
+                    $message = "No retailers found";
+                }
+            } catch (Exception $e) {
+                $GLOBALS['code'] = 500;
+                $status = false;
+                $message = "Error retrieving retailers: " . $e->getMessage();
+            }
+        } else {
+            $GLOBALS['code'] = 401;
+            $status = false;
+            $message = "Invalid API key";
+        }
+
+    } else if ($input["type"] === "UpdateRetailer") {
+        if ($dbConn->checkApiKey($input['apikey'])) {
+            $user = $dbConn->getUserWithApikey($input['apikey']);
+            if ($user['user_type'] === 'Admin') {
+                try {
+                    $retailerId = $input['retailer_id'];
+                    $name = isset($input['retailer_name']) ? $input['retailer_name'] : null;
+                    $website = isset($input['website']) ? $input['website'] : null;
+                    $logo_url = isset($input['logo_url']) ? $input['logo_url'] : null;
+                    $location = isset($input['location']) ? $input['location'] : null;
+                    $contact_email = isset($input['contact_email']) ? $input['contact_email'] : null;
+
+                    // Update retailer
+                    $dbConn->updateRetailer($retailerId, $name, $website, $logo_url, $location, $contact_email);
+                    $GLOBALS['code'] = 200;
+                    $status = true;
+                    $message = "Retailer updated successfully";
+
+                } catch (Exception $e) {
+                    $GLOBALS['code'] = 500;
+                    $status = false;
+                    $message = "Error updating retailer: " . $e->getMessage();
+                }
+            } else {
+                $GLOBALS['code'] = 403;
+                $status = false;
+                $message = "User does not have permission to update retailers";
+            }
+        } else {
+            $GLOBALS['code'] = 401;
+            $status = false;
+            $message = "Invalid API key";
+        }
+    } else if ($input['type'] === 'DeleteRetailer') {
+        if ($dbConn->checkApiKey($input['apikey'])) {
+            try {
+                // Delete retailer
+                $dbConn->deleteRetailer($input['retailer_id']);
+                $GLOBALS['code'] = 200;
+                $status = true;
+                $message = "Retailer deleted successfully";
+
+            } catch (Exception $e) {
+                $GLOBALS['code'] = 500;
+                $status = false;
+                $message = "Error deleting retailer: " . $e->getMessage();
+            }
+        }  
+    }
+        else {
+        if (empty($GLOBALS['code'])) 
             $GLOBALS['code'] = 400;
         $status = false;
-        $message = "Please specify type or check request body for mistakes";
-    }
+        $message = "Please specify type or check request body for mistakes";}
 
     respond($status, $message, $GLOBALS['code']);
 
