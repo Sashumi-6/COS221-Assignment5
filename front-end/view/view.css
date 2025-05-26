@@ -224,4 +224,5 @@ iframe {
     height: 100%;
     border: #66615E 4px solid;
     border-radius: 10px;
+    align-self: center;
 }
