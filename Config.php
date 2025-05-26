@@ -48,6 +48,7 @@ class Database {
             return $sqlQuery->affected_rows === 1;
         }
         else{
+            error_log("Execute error: " . $sqlQuery->error);
             throw new Exception("Could not add user to the database");
         }
         
@@ -244,6 +245,7 @@ class Database {
             return $result->fetch_all(MYSQLI_ASSOC);
         }
         else{
+            error_log("Execute error: " . $stmt->error);
             throw new Exception("Couldn't retrieve data from database.");
         }
 
@@ -259,6 +261,7 @@ class Database {
             return $result->fetch_assoc();
         }
         else{
+            error_log("Execute error: " . $stmt->error);
             throw new Exception("Couldn't retrieve data from database.");
         }
     }
@@ -318,6 +321,7 @@ class Database {
         $stmt->bind_param('i', $id);
 
         if(!$stmt->execute()){
+            error_log("Execute error: " . $stmt->error);
             throw new Exception("Couldn't remove category from database.");
         }
         
@@ -355,6 +359,7 @@ class Database {
         else $stmt->bind_param($types, $name);
         
         if(!$stmt->execute()){
+            error_log("Execute error: " . $stmt->error);
             throw new Exception("Couldn't add category to the database.");
         }
 
@@ -371,6 +376,7 @@ class Database {
         $stmt->bind_param('si', $newVal ,$id);
 
         if(!$stmt->execute()){
+            error_log("Execute error: " . $stmt->error);
             throw new Exception("Couldn't remove category from database.");
         }
     }
@@ -388,6 +394,7 @@ class Database {
             return $result->fetch_all(MYSQLI_ASSOC);
         }
         else{
+            error_log("Execute error: " . $stmt->error);
             throw new Exception("Couldn't retrieve data from database.");
         }
     }
@@ -399,6 +406,7 @@ class Database {
         $stmt->bind_param('i', $id);
         
         if (!$stmt->execute()) {
+            error_log("Execute error: " . $stmt->error);
             throw new Exception('Could not delete product from the database.');
         }
     }
@@ -453,6 +461,81 @@ class Database {
 
         // Return true if any rows were affected
         return $stmt->affected_rows > 0;
+    }
+
+    /*
+     * Gets the reviews for a specific product based on the upc
+     * returns the commenter's username, the rating, supplier name 
+     * and review 
+     */
+    public function getAllReviews($upc){
+        $query = "SELECT r.review, r.rating, 
+        u.username, s.supplier_name
+        FROM reviews r JOIN users u 
+        ON u.user_id = r.user_id JOIN suppliers s
+        ON s.supplier_id = r.supplier_id WHERE r.upc = ?";
+
+        $stmt = $this->prepare($query);
+        $stmt->bind_param('i', $upc);
+        
+        if($stmt->execute()){
+            $result = $stmt->get_result();
+            return $result->fetch_all(MYSQLI_ASSOC);
+        }
+        else{
+            error_log("Execute error: " . $stmt->error);
+            throw new Exception("Couldn't retrieve data from database.");
+        }
+    }
+
+    /*
+     * Adds the reviews and then
+     * returns the new review details
+     */
+    public function addReview($upc, $supplierId, $userId, $review, $rating){
+        $stmt = $this->prepare("INSERT INTO reviews (upc, supplier_id, user_id, review, rating)
+        values (?,?,?,?,?)");
+
+        $stmt->bind_param('iiisi', $upc, $supplierId, $userId, $review, $rating);
+        
+        if (!$stmt->execute()) {
+            error_log("Execute error: " . $stmt->error);
+            throw new Exception("Could not add user to the database");        
+        }
+        
+        // get this review
+        $query = "SELECT r.review, r.rating, 
+        u.username, s.supplier_name
+        FROM reviews r JOIN users u 
+        ON u.user_id = r.user_id JOIN suppliers s
+        ON s.supplier_id = r.supplier_id WHERE r.upc = ? 
+        AND r.supplier_id = ? AND r.user_id = ?";
+
+        $stmt = $this->prepare($query);
+        $stmt->bind_param('iii', $upc, $supplierId, $userId);
+
+        if (!$stmt->execute()) {
+            error_log("Execute error: " . $stmt->error);
+            throw new Exception("Could not retrieve the review");        
+        }
+
+        $result = $stmt->get_result();
+        return $result->fetch_assoc();
+
+    }
+
+    /*
+     * gets supplier by their name..., to make coding easier on the api end
+     */
+    public function getSupplier($supName){
+        $query = "SELECT * FROM suppliers WHERE supplier_name=?";
+        $sqlQuery = $this->prepare($query);
+        $sqlQuery->bind_param('s', $supName);
+        $sqlQuery->execute();
+        $result = $sqlQuery->get_result();
+        
+
+        return $result->fetch_assoc();
     }
 
     public function close() {

@@ -2,6 +2,8 @@
     include('Config.php');
     header('Content-Type: application/json');
     header('X-Content-Type-Options: nosniff'); // provides security, protects XSS
+    header('X-Frame-Options: DENY');
+    header('X-XSS-Protection: 1; mode=block'); 
 
     // requests made to the api must be in JSON and made with POST
     $input = json_decode(file_get_contents("php://input"), true);
@@ -152,6 +154,29 @@
         return $toReturn;
     }
 
+    // function to check for scripts in review
+    function isMalicious($input) {
+        
+        $patterns = [
+            '/<script\b[^>]*>(.*?)<\/script>/is', 
+            '/on[a-z]+\s*=/i',                    
+            '/javascript\s*:/i',                  
+            '/eval\s*\(/i',                       
+            '/document\./i',                      
+            '/window\./i',                        
+            '/<\?php/i',                          
+            '/<\/?\w+.*?(?:>|$)/i',               
+            '/\b(?:alert|prompt|confirm)\s*\(/i'
+        ];
+        
+        foreach ($patterns as $pattern) {
+            if (preg_match($pattern, $input)) {
+                return true; // Malicious content found
+            }
+        }
+        return false; // Input appears safe
+    }
+
     // register end point
     if ($input['type'] === 'Register') {
         $validInput = validateInput($input);
@@ -173,6 +198,7 @@
                     $added = $dbConn->addUser($username, $fullname, $email, $passHash, $salt, $apiKey, $type);
 
                     if ($added) {
+                        $user = $dbConn->getUser($username);
                         $GLOBALS['code'] = 201;
                         $status = true;
                         $message = [
@@ -473,6 +499,11 @@
                         $message = $e->getMessage();
                     }
                 }
+                else{
+                    $GLOBALS['code'] = 400;
+                    $status = false;
+                    $message = "Unknown Operation. Please specify an Operation";
+                }
             }
             else{
                 $GLOBALS['code'] = 403;
@@ -488,7 +519,54 @@
     }
     else if($input['type'] === 'Reviews'){
         if($dbConn->checkApiKey($input['apikey'])){
+            if($input['operation'] === 'Get'){
+                try{
+                    $data = $dbConn->getAllReviews($input['upc']);
 
+                    $GLOBALS['code'] = 200;
+                    $status = true;
+                    $message = $data;
+                }
+                catch(Exception $e){
+                    $GLOBALS['code'] = 500;
+                    $status = false;
+                    $message = $e->getMessage();
+                }
+            }
+            else if($input['operation'] === 'Add'){
+                try{
+                    $upc = $input['upc'];
+                    $userId = $dbConn->getUser($input['username'])['user_id'];
+                    $supId = $dbConn->getSupplier($input['supplier_name'])['supplier_id'];
+                    $review = null;
+                    $input['review'] = filter_var($input['review'], FILTER_SANITIZE_FULL_SPECIAL_CHARS);
+                    if(isMalicious($input['review'])){
+                        throw new Exception("Review contains a script");
+                    }
+                    else{
+                        $review = $input['review'];
+                    }
+
+                    $newReview = $dbConn->addReview($upc, $supId ,$userId, 
+                    $review, $input['rating']);
+
+                    $GLOBALS['code'] = 201;
+                    $status = true;
+                    $message = $newReview;
+                }
+                catch(Exception $e){
+                    if($e->getMessage() !== "Review contains a script")
+                        $GLOBALS['code'] = 500;
+                    else $GLOBALS['code'] = 403;
+                    $status = false;
+                    $message = $e->getMessage();
+                }
+            }
+            else{
+                $GLOBALS['code'] = 400;
+                $status = false;
+                $message = "Unknown Operation. Please specify an Operation";
+            }
         }
         else{
             $GLOBALS['code'] = 401;
