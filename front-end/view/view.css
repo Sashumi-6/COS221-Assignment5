@@ -110,7 +110,10 @@ img {
 }
 
 .numeric-rating {
-    width: 50%;
+    display: flex;
+    width: 2em;
+    justify-content: center;
+    align-items: center;
     padding: 0em 0.5em;
 }
 
@@ -168,6 +171,14 @@ img {
 
 #review-rating span.checked, #review-container span.checked {
     color: orange;
+}
+
+#review-rating span:not(.active) {
+    transform: scale(1);
+}
+
+#review-rating span.active {
+    transform: scale(1.5);
 }
 
 #review-rating span:not(.checked) {

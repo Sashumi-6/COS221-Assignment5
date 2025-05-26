@@ -98,9 +98,7 @@ function loadProductDetails(data) {
     loadSuppliers(tmp.supps);
 }
 
-// DO NOT TOUCH !!! @daniel working on this
 function loadSuppliers(data) {
-    //will get called inside loadProductDetails
     data.forEach((supplier) => {
         $('#prices-container')
         .append(`
@@ -113,10 +111,48 @@ function loadSuppliers(data) {
 }
 
 function loadReviewDetails() {
+    for (i = 5, j = 1 ; i > 0 ; i--, j++) {
+        $('#overall-review').append(`
+            <div class="star-rating" id="overall-${i}">
+                <a>${i}</a>
+                <span class="fa fa-star checked"></span>
+                <a class="numeric-rating">${Math.floor(((Math.random() * 1000) + 1) % 100)}</a>
+            </div>
+        `);
 
+        let starRating = $(`<span id="${j}" class="fa fa-star"></span>`).click(j, starRatingClick);
+        if (j == 1) starRating.addClass('checked').addClass('active');
+        $('#review-rating').append(starRating);
+    }
+}
+function starRatingClick(event) {
+    let currentClick = event.data;
+
+    if ($(this).hasClass('checked')) {
+        //we will for each star greater than this, remove the class 'checked' if it has it
+        for (i = currentClick + 1 ; i < 6 ; i++) {
+            let successor = $(`#review-rating span#${i}`);
+            if (successor.hasClass('checked')) successor.toggleClass('checked').toggleClass('active');
+        }
+    } else {
+        for (i = currentClick - 1 ; i > 0 ; i--) {
+            let predeccessor = $(`#review-rating span#${i}`);
+            if (!predeccessor.hasClass('checked')) predeccessor.toggleClass('checked').toggleClass('active');
+        }
+        $(this).toggleClass('checked').toggleClass('active');
+    }
 }
 
 function webload() {
+    $('button#clear').click(() => {
+        $('textarea#review-content').val('');
+    });
+    $('button#submit').click(() => {
+        let review = $('textarea#review-content').val();
+        //todo add functionality
+        if (review != '') console.log(review);
+    });
+
     //temp data just to prove ajax works
     // .then() we can set stuff there as in global data gets and stuff
     ajaxRequest({
@@ -126,6 +162,7 @@ function webload() {
     }).then((resp) => { console.log(resp) }, onfail);
 
     loadProductDetails();
+    loadReviewDetails();
 }
 
 $(document).ready(webload);
