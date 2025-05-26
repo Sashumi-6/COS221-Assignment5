@@ -1,208 +1,163 @@
-function productsUpdate(data) {
-    let del_btn = $(`<div class="buttons"><button>Delete</button></div>`);
-    let main = $(`
-        <div class="product" id="upc-${data.upc}">
-            <a>${data.upc}</a>
-            <a>${data.name}</a>
-            <a>${data.description}</a>
-            <a>${data.category}</a>
-            <a>${data.brand}</a>
-            <a>${data.supplier}</a>
-        </div>
-        `).append(del_btn);
-    $('#products-container').append(main);
+const apiUrl = "https://wheatley.cs.up.ac.za/u24676111/api.php";
+const apikey = sessionStorage.getItem("apikey");
+let allProductsCache = [];
+$(document).ready(() => {
+    loadCategories();
+    loadProducts();
+
+    // Setup filter listener
+    $('#bar').on('input', applyFilters);
+    $('#sort-select').on('change', applyFilters);
+    $('#brand-select').on('change', applyFilters);
+});
+
+function loadProducts(filters = {}) {
+    const requestData = {
+        type: "GetAllProducts",
+        apikey,
+        ...filters
+    };
+
+    $.ajax({
+        url: apiUrl,
+        method: "POST",
+        contentType: "application/json",
+        data: JSON.stringify(requestData),
+        success: (response) => {
+            if (response.status) {
+                renderProducts(response.message.products);
+            } else {
+                $('.container').html("<p>No products found.</p>");
+            }
+        },
+        error: () => {
+            $('.container').html("<p>Failed to load products.</p>");
+        }
+    });
 }
 
-function usersUpdate(data) {
-    let del_btn = $(`<div class="buttons"><button>Delete</button></div>`);
-    let main = $(`
-        <div class="user" id="userid-${data.id}">
-            <a>${data.id}</a>
-            <a>${data.username}</a>
-            <a>${data.fullName}</a>
-            <a>${data.email}</a>
-            <a>${data.user_type}</a>
-        </div>
-        `).append(del_btn);
-    $('#users-container').append(main);
-}
+function renderProducts(products) {
+    allProductsCache = products;
+    const container = $(".container");
+    container.empty();
 
-function sideContentUpdate(selector, data) {
-    let appendableComponent = $("#" + selector + "-container" + " #list-items");
-    if ((selector == "categories" && CategoryInit == 0) || (selector == "stockist" && StockistInit == 0)) {
-        //if we havent loaded the page
-        let addbtn = $(`<button id="add-${selector}-btn">Add</button>`)
-            .click({id: "add-" + selector, type: selector, command: "add"}, sideContent_add_del);
-        
-        let addComponent = $(`
-            <div id="add-${selector}" class="item">
-                <input id="add-${selector}" type="text">
-                <div class="buttons"></div>
+    const brandSet = new Set();
+
+    products.forEach(prod => {
+        brandSet.add(prod.brand);
+
+        const card = $(`
+            <div class="product-card">
+                <div class="product-image">
+                    <img src="${prod.image_url || 'https://cdn.shopify.com/s/files/1/0533/2089/files/placeholder-images-image_large.png?v=1530129081'}" alt="Product Image">
+                </div>
+                <div class="product-details">
+                    <h2 class="product-title">${prod.product_name}</h2>
+                    <p class="product-price">R${prod.price}</p>
+                    <p class="product-description">${prod.description || "No description provided."}</p>
+                    <div class="userbuttons userbuttons-classic">
+                        <button class="compare">Compare</button>
+                    </div>
+                </div>
             </div>
-            `);
-        addbtn.appendTo(addComponent.children('.buttons'));
-        appendableComponent.append(addComponent);
-        if (selector == "categories") CategoryInit = 1;
-        if (selector == "stockist") StockistInit = 1;
-    }
-    
-    // Each Category name is unique => using it as the unique identifier for components
+        `);
+        container.append(card);
+    });
 
-    //template
-
-    //Create the buttons dawg
-    let edit = $(`<button id="edit-btn">Edit</button>`)
-        .click({id: data, type: selector}, editSideContent);
-    let del = $(`<button id="delete-btn">Delete</button>`)
-        .click({id: data, type: selector, command: "del"}, sideContent_add_del);
-
-    let main = $(`
-        <div class="item" id="${data}">
-            <input id="inputEdit-${selector}${data}" class="hidden">
-            <a>${data}</a>
-            <div class="buttons"></div>
-        </div>
-        `)
-
-    edit.appendTo(main.children('.buttons'));
-    del.appendTo(main.children('.buttons'));
-    appendableComponent.append(main);
+    updateBrandDropdown(brandSet);
 }
 
-function editSideContent(event) {
-    let id = event.data.id;
-    let type = event.data.type;
-
-    let item = $('#' + type + "-container #" + id);
-    let del_btn = item.find('#delete-btn');
-    let upd_btn = item.find('#edit-btn');
-    let input = item.find("input");
-    let itemName = item.find("a");
-    if (upd_btn.text() == "Edit") {
-        upd_btn.text("Done");
-        del_btn.toggleClass('hidden');
-        itemName.toggleClass('hidden');
-        input.val(itemName.text());
-        input.toggleClass('hidden');
-    } else {
-        // API FUNCTIONALITY DONE HERE
-        // UPDATE EVERYWHERE WHERE THIS CATEGORY EXISTS
-        // THEN RELOAD ALL PRODUCTS ? - MAYBE CAN JUST TRY TO FIND WHERE THIS VAL EXITS IN THE PAGE
-        //      => IN THE CORRECT CONTEXT
-
-        upd_btn.text("Edit");
-        del_btn.toggleClass('hidden');
-        input.toggleClass('hidden');
-        itemName.text(input.val());
-        itemName.toggleClass('hidden');
-    }
+function updateBrandDropdown(brands) {
+    const brandSelect = $('#brand-select');
+    brandSelect.empty().append(`<option value="">Filter by Brand</option>`);
+    Array.from(brands).sort().forEach(brand => {
+        brandSelect.append(`<option value="${brand}">${brand}</option>`);
+    });
 }
 
-function sideContent_add_del(event) {
-    let operation = event.data.command;
-    let type = event.data.type;
-    let id = event.data.id;
-
-    let addInputValue = $('#' + type + "-container #" + id + " input").val().trim();
-    if (operation == "add" && addInputValue !== '') {
-        let items = $('#' + type + "-container");
-        let item = items.find('#' + id);
-
-        if ($('.item#' + addInputValue).length == 0) {
-            sideContentUpdate(type, addInputValue);
-            item.find('input').attr('placeholder', 'Success')
-
-            // IMPLEMENT API SHIT HERE !!!
-        } else item.find('input').attr('placeholder', 'Error - Try again');
-        item.find('input').val('');
-    }
-
-    if (operation == "del") {
-        $('.item#' + id).remove();
-        // IMPLEMENT API SHIT HERE
-    }
+function loadCategories() {
+    $.ajax({
+        url: apiUrl,
+        method: "POST",
+        contentType: "application/json",
+        data: JSON.stringify({ type: "Categories", Operation: "Get", apikey }),
+        success: (response) => {
+            if (response.status && Array.isArray(response.message)) {
+                const categoryTree = buildCategoryTree(response.message);
+                renderCategoryTree(categoryTree);
+            }
+        }
+    });
 }
 
-// Tmp Data
-var categoryTmp = ["Category1", "Category2", "Category3", "Category4", "Category5", "Category6"]
-var StockistTmp = ["Stockist1", "Stockist2", "Stockist3", "Stockist4", "Stockist5", "Stockist6"]
+// Organize categories into a tree structure
+function buildCategoryTree(categories) {
+    const map = {}, tree = [];
 
-let products = [
-    {
-        upc: "0001",
-        name: "Generic1",
-        description: "Generic Product",
-        category: "Technology",
-        brand: "Lenovo",
-        supplier: "Incredible Connection"
-    },
-    {
-        upc: "0002",
-        name: "Generic2",
-        description: "Generic Product",
-        category: "Beauty",
-        brand: "Channel",
-        supplier: "Edgars"
-    },
-    {
-        upc: "0003",
-        name: "Generic3",
-        description: "Generic Product",
-        category: "Software",
-        brand: "Microsoft",
-        supplier: "Evetech"
-    },
-    {
-        upc: "0004",
-        name: "Generic4 But this is a really long name",
-        description: "Generic Product but this is a really long name",
-        category: "Generic Category but this is a really long name",
-        brand: "Generic Brand but this is a really long name",
-        supplier: "Generic Supplier but this is a really long name"
-    }
-]
+    categories.forEach(cat => {
+        cat.children = [];
+        map[cat.category_name] = cat;
+    });
 
-let users = [
-    {
-        id: "001",
-        username: "GenericUsername",
-        fullName: "GenericFullName",
-        email: "GenericEmail@gmail.com",
-        user_type: "GenericUserType"
-    },
-    {
-        id: "002",
-        username: "GenericUsername",
-        fullName: "GenericFullName",
-        email: "GenericEmail@gmail.com",
-        user_type: "GenericUserType"
-    },
-    {
-        id: "011",
-        username: "GenericUsername",
-        fullName: "GenericFullName",
-        email: "GenericEmail@gmail.com",
-        user_type: "GenericUserType"
-    },
-    {
-        id: "012",
-        username: "GenericUsername",
-        fullName: "GenericFullName",
-        email: "GenericEmail@gmail.com",
-        user_type: "GenericUserType"
-    }
-]
+    categories.forEach(cat => {
+        if (cat.parent_category_name && map[cat.parent_category_name]) {
+            map[cat.parent_category_name].children.push(cat);
+        } else {
+            tree.push(cat);
+        }
+    });
 
-// Initiliser varibles
-let CategoryInit = 0;
-let StockistInit = 0;
-function webLoad() {
-    //Load side content
-    categoryTmp.forEach((cat) => { sideContentUpdate('categories', cat) });
-    StockistTmp.forEach((stock) => { sideContentUpdate('stockist', stock) });
-
-    products.forEach((prod) => { productsUpdate(prod) });
-    users.forEach((user) => { usersUpdate(user) });
+    return tree;
 }
 
-$(document).ready(webLoad);
+function renderCategoryTree(tree, parent = $("#categories-container #list-items"), level = 0) {
+    tree.forEach(cat => {
+        const entry = $(`<div style="margin-left: ${level * 15}px; cursor: pointer;" class="category-item">${cat.category_name}</div>`);
+        entry.click(() => {
+            applyFilters({ category_id: cat.category_id, include_subcategories: true });
+        });
+        parent.append(entry);
+
+        if (cat.children.length > 0) {
+            renderCategoryTree(cat.children, parent, level + 1);
+        }
+    });
+}
+
+// Collect and apply all filters
+function applyFilters(extra = {}) {
+    const searchTerm = $('#bar').val().trim().toLowerCase();
+    const selectedBrand = $('#brand-select').val();
+    const sortOption = $('#sort-select').val();
+
+    let filtered = [...allProductsCache];
+
+    if (searchTerm) {
+        filtered = filtered.filter(p =>
+            p.product_name.toLowerCase().includes(searchTerm) ||
+            p.description?.toLowerCase().includes(searchTerm)
+        );
+    }
+
+    if (selectedBrand) {
+        filtered = filtered.filter(p => p.brand === selectedBrand);
+    }
+
+    // Sorting
+    switch (sortOption) {
+        case "az":
+            filtered.sort((a, b) => a.product_name.localeCompare(b.product_name));
+            break;
+        case "za":
+            filtered.sort((a, b) => b.product_name.localeCompare(a.product_name));
+            break;
+        case "priceLowHigh":
+            filtered.sort((a, b) => a.price - b.price);
+            break;
+        case "priceHighLow":
+            filtered.sort((a, b) => b.price - a.price);
+            break;
+    }
+
+    renderProducts(filtered);
+}
