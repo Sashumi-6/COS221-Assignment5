@@ -48,6 +48,7 @@ class Database {
             return $sqlQuery->affected_rows === 1;
         }
         else{
+            error_log("Execute error: " . $sqlQuery->error);
             throw new Exception("Could not add user to the database");
         }
         
@@ -244,6 +245,7 @@ class Database {
             return $result->fetch_all(MYSQLI_ASSOC);
         }
         else{
+            error_log("Execute error: " . $stmt->error);
             throw new Exception("Couldn't retrieve data from database.");
         }
 
@@ -259,55 +261,56 @@ class Database {
             return $result->fetch_assoc();
         }
         else{
+            error_log("Execute error: " . $stmt->error);
             throw new Exception("Couldn't retrieve data from database.");
         }
     }
 
     public function getCategoryWithDescendants($categoryId) {
-    // First try with recursive CTE (MySQL 8+)
-    $query = "
-    WITH RECURSIVE category_tree AS (
-        SELECT category_id, parent_category_id FROM category WHERE category_id = ?
-        UNION ALL
-        SELECT c.category_id, c.parent_category_id FROM category c
-        JOIN category_tree ct ON c.parent_category_id = ct.category_id
-    )
-    SELECT category_id FROM category_tree";
-    
-    $stmt = $this->conn->prepare($query);
-    if ($stmt) {
-        $stmt->bind_param('i', $categoryId);
-        $stmt->execute();
-        $result = $stmt->get_result();
-        $ids = $result->fetch_all(MYSQLI_ASSOC);
-        return array_column($ids, 'category_id');
-    }
-    
-    // Fallback for older MySQL versions
-    $allCategories = $this->getAllCategories();
-    return $this->getDescendantsRecursive($allCategories, $categoryId);
-}
-
-private function getAllCategories() {
-    $query = "SELECT category_id, parent_category_id FROM category";
-    $result = $this->conn->query($query);
-    return $result->fetch_all(MYSQLI_ASSOC);
-}
-
-private function getDescendantsRecursive($categories, $parentId) {
-    $result = [$parentId];
-    
-    foreach ($categories as $category) {
-        if ($category['parent_category_id'] == $parentId) {
-            $result = array_merge(
-                $result, 
-                $this->getDescendantsRecursive($categories, $category['category_id'])
-            );
+        // First try with recursive CTE (MySQL 8+)
+        $query = "
+        WITH RECURSIVE category_tree AS (
+            SELECT category_id, parent_category_id FROM category WHERE category_id = ?
+            UNION ALL
+            SELECT c.category_id, c.parent_category_id FROM category c
+            JOIN category_tree ct ON c.parent_category_id = ct.category_id
+        )
+        SELECT category_id FROM category_tree";
+        
+        $stmt = $this->conn->prepare($query);
+        if ($stmt) {
+            $stmt->bind_param('i', $categoryId);
+            $stmt->execute();
+            $result = $stmt->get_result();
+            $ids = $result->fetch_all(MYSQLI_ASSOC);
+            return array_column($ids, 'category_id');
         }
+        
+        // Fallback for older MySQL versions
+        $allCategories = $this->getAllCategories();
+        return $this->getDescendantsRecursive($allCategories, $categoryId);
     }
-    
-    return $result;
-}
+
+    private function getAllCategories() {
+        $query = "SELECT category_id, parent_category_id FROM category";
+        $result = $this->conn->query($query);
+        return $result->fetch_all(MYSQLI_ASSOC);
+    }
+
+    private function getDescendantsRecursive($categories, $parentId) {
+        $result = [$parentId];
+        
+        foreach ($categories as $category) {
+            if ($category['parent_category_id'] == $parentId) {
+                $result = array_merge(
+                    $result, 
+                    $this->getDescendantsRecursive($categories, $category['category_id'])
+                );
+            }
+        }
+        
+        return $result;
+    }
 
     /**
      * removes category by id
@@ -318,6 +321,7 @@ private function getDescendantsRecursive($categories, $parentId) {
         $stmt->bind_param('i', $id);
 
         if(!$stmt->execute()){
+            error_log("Execute error: " . $stmt->error);
             throw new Exception("Couldn't remove category from database.");
         }
         
@@ -334,7 +338,7 @@ private function getDescendantsRecursive($categories, $parentId) {
         }
 
 
-}
+    }
 
 public function getAllSuppliers() {
     $query = "SELECT supplier_id, supplier_name, contact_info FROM suppliers";
@@ -401,6 +405,7 @@ public function getAllSuppliers() {
         else $stmt->bind_param($types, $name);
         
         if(!$stmt->execute()){
+            error_log("Execute error: " . $stmt->error);
             throw new Exception("Couldn't add category to the database.");
         }
 
@@ -417,13 +422,42 @@ public function getAllSuppliers() {
         $stmt->bind_param('si', $newVal ,$id);
 
         if(!$stmt->execute()){
+            error_log("Execute error: " . $stmt->error);
             throw new Exception("Couldn't remove category from database.");
         }
     }
     
+    /*
+        Get all users on the database, However not all info is returned
+        id, username, full name, email, user_type
+    */ 
+    public function getAllUsers(){
+        $query = "SELECT user_id, full_name, username, email, user_type FROM users";
+        $stmt = $this->prepare($query);
+        
+        if($stmt->execute()){
+            $result = $stmt->get_result();
+            return $result->fetch_all(MYSQLI_ASSOC);
+        }
+        else{
+            error_log("Execute error: " . $stmt->error);
+            throw new Exception("Couldn't retrieve data from database.");
+        }
+    }
 
+    // remove user from database
+    public function deleteUser($id){
+        $query = "DELETE FROM users WHERE user_id = ?";
+        $stmt = $this->prepare($query);
+        $stmt->bind_param('i', $id);
+        
+        if (!$stmt->execute()) {
+            error_log("Execute error: " . $stmt->error);
+            throw new Exception('Could not delete product from the database.');
+        }
+    }
 
-   public function updateProduct($updateData) {
+    public function updateProduct($updateData) {
         // building the query
         $query = "UPDATE products SET ";
         $params = [];
@@ -475,8 +509,95 @@ public function getAllSuppliers() {
         return $stmt->affected_rows > 0;
     }
 
-    
-    
+    /*
+     * Gets the reviews for a specific product based on the upc
+     * returns the commenter's username, the rating, supplier name 
+     * and review 
+     */
+    public function getAllReviews($upc){
+        $query = "SELECT r.review, r.rating, 
+        u.username, s.supplier_name
+        FROM reviews r JOIN users u 
+        ON u.user_id = r.user_id JOIN suppliers s
+        ON s.supplier_id = r.supplier_id WHERE r.upc = ?";
+
+        $stmt = $this->prepare($query);
+        $stmt->bind_param('i', $upc);
+        
+        if($stmt->execute()){
+            $result = $stmt->get_result();
+            return $result->fetch_all(MYSQLI_ASSOC);
+        }
+        else{
+            error_log("Execute error: " . $stmt->error);
+            throw new Exception("Couldn't retrieve data from database.");
+        }
+    }
+
+    /*
+     * Adds the reviews and then
+     * returns the new review details
+     */
+    public function addReview($upc, $supplierId, $userId, $review, $rating){
+        $stmt = $this->prepare("INSERT INTO reviews (upc, supplier_id, user_id, review, rating)
+        values (?,?,?,?,?)");
+
+        $stmt->bind_param('iiisi', $upc, $supplierId, $userId, $review, $rating);
+        
+        if (!$stmt->execute()) {
+            error_log("Execute error: " . $stmt->error);
+            throw new Exception("Could not add user to the database");        
+        }
+        
+        // get this review
+        $query = "SELECT r.review, r.rating, 
+        u.username, s.supplier_name
+        FROM reviews r JOIN users u 
+        ON u.user_id = r.user_id JOIN suppliers s
+        ON s.supplier_id = r.supplier_id WHERE r.upc = ? 
+        AND r.supplier_id = ? AND r.user_id = ?";
+
+        $stmt = $this->prepare($query);
+        $stmt->bind_param('iii', $upc, $supplierId, $userId);
+
+        if (!$stmt->execute()) {
+            error_log("Execute error: " . $stmt->error);
+            throw new Exception("Could not retrieve the review");        
+        }
+
+        $result = $stmt->get_result();
+        return $result->fetch_assoc();
+
+    }
+
+    /*
+     * gets supplier by their name..., to make coding easier on the api end
+     */
+    public function getSupplier($supName){
+        $query = "SELECT * FROM suppliers WHERE supplier_name=?";
+        $sqlQuery = $this->prepare($query);
+        $sqlQuery->bind_param('s', $supName);
+        $sqlQuery->execute();
+        $result = $sqlQuery->get_result();
+        
+
+        return $result->fetch_assoc();
+    }
+
+    public function getAllSuppliers(){
+        $query = "SELECT * FROM suppliers";
+        $stmt = $this->prepare($query);
+        
+        if($stmt->execute()){
+            $result = $stmt->get_result();
+            return $result->fetch_all(MYSQLI_ASSOC);
+        }
+        else{
+            error_log("Execute error: " . $stmt->error);
+            throw new Exception("Couldn't retrieve data from database.");
+        }
+    }
+
     public function close() {
         $this->conn->close();
     }
