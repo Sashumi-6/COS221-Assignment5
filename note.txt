@@ -2,15 +2,15 @@ Functionality we need for admin are:
 - Get all categories (done)
 - Get all stockist/suppliers
 - Get all products (done)
-- Get all users
+- Get all users (done)
 - update category (done)
 - update stokist/suppliers
 - update products (done)
 - update users
 - delete categories (done)
 - delete stockist/supplier 
-- delete product
-- delete user
+- delete product (done)
+- delete user (done)
 
 Functionality User:
 - Get all reviews

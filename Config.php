@@ -538,6 +538,20 @@ class Database {
         return $result->fetch_assoc();
     }
 
+    public function getAllSuppliers(){
+        $query = "SELECT * FROM suppliers";
+        $stmt = $this->prepare($query);
+        
+        if($stmt->execute()){
+            $result = $stmt->get_result();
+            return $result->fetch_all(MYSQLI_ASSOC);
+        }
+        else{
+            error_log("Execute error: " . $stmt->error);
+            throw new Exception("Couldn't retrieve data from database.");
+        }
+    }
+
     public function close() {
         $this->conn->close();
     }

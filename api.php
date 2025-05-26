@@ -600,6 +600,66 @@
             $message = "Invalid API key";
 
         }
+    }
+    else if($input['type'] === 'Suppliers'){
+        if($dbConn->checkApiKey($input['apikey'])){
+            $user = $dbConn->getUserWithApikey($input['apikey']);
+            if($user['user_type'] === 'Admin'){
+                if($input['operation'] === 'Get'){
+                    try{
+                        $data = $dbConn->getAllSuppliers();
+
+                        $GLOBALS['code'] = 200;
+                        $status = true;
+                        $message = $data;
+                    }
+                    catch(Exception $e){
+                        $GLOBALS['code'] = 500;
+                        $status = false;
+                        $message = $e->getMessage();
+                    }
+                }
+                else if($input['operation'] === 'Delete'){
+                    try{
+                        $GLOBALS['code'] = 503;
+                        $status = false;
+                        $message = "Still working on it";
+                    }
+                    catch(Exception $e){
+                        $GLOBALS['code'] = 500;
+                        $status = false;
+                        $message = $e->getMessage();
+                    }
+                }
+                else if($input['operation'] === 'Update'){
+                    try{
+                        $GLOBALS['code'] = 503;
+                        $status = false;
+                        $message = "Still working on it";
+                    }
+                    catch(Exception $e){
+                        $GLOBALS['code'] = 500;
+                        $status = false;
+                        $message = $e->getMessage();
+                    }
+                }
+                else{
+                    $GLOBALS['code'] = 400;
+                    $status = false;
+                    $message = "Unknown Operation. Please specify an Operation";
+                }
+            }
+            else{
+                $GLOBALS['code'] = 403;
+                $status = false;
+                $message = "User cannot do the following operation.";
+            }
+        }
+        else{
+            $GLOBALS['code'] = 401;
+            $status = false;
+            $message = "Apikey is invalid";
+        }
     } 
     else {
         if (empty($GLOBALS['code']))
