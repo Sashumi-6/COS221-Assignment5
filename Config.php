@@ -334,7 +334,7 @@ class Database {
         }
 
 
-}
+    }
 
     /**
      * add a new product
@@ -375,8 +375,35 @@ class Database {
         }
     }
     
+    /*
+        Get all users on the database, However not all info is returned
+        id, username, full name, email, user_type
+    */ 
+    public function getAllUsers(){
+        $query = "SELECT user_id, full_name, username, email, user_type FROM users";
+        $stmt = $this->prepare($query);
+        
+        if($stmt->execute()){
+            $result = $stmt->get_result();
+            return $result->fetch_all(MYSQLI_ASSOC);
+        }
+        else{
+            throw new Exception("Couldn't retrieve data from database.");
+        }
+    }
 
-   public function updateProduct($updateData) {
+    // remove user from database
+    public function deleteUser($id){
+        $query = "DELETE FROM users WHERE user_id = ?";
+        $stmt = $this->prepare($query);
+        $stmt->bind_param('i', $id);
+        
+        if (!$stmt->execute()) {
+            throw new Exception('Could not delete product from the database.');
+        }
+    }
+
+    public function updateProduct($updateData) {
         // building the query
         $query = "UPDATE products SET ";
         $params = [];
@@ -428,8 +455,6 @@ class Database {
         return $stmt->affected_rows > 0;
     }
 
-    
-    
     public function close() {
         $this->conn->close();
     }

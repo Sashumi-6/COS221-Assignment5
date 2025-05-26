@@ -1,56 +1,56 @@
 <?php
-include('Config.php');
-header('Content-Type: application/json');
-header('X-Content-Type-Options: nosniff'); // provides security, protects XSS
+    include('Config.php');
+    header('Content-Type: application/json');
+    header('X-Content-Type-Options: nosniff'); // provides security, protects XSS
 
-// requests made to the api must be in JSON and made with POST
-$input = json_decode(file_get_contents("php://input"), true);
-$dbConn = Database::connect(); // ensures singleton
-$status = false;
-$message = null;
-if (json_last_error() !== JSON_ERROR_NONE) {
-    $GLOBALS['code'] = 400;
+    // requests made to the api must be in JSON and made with POST
+    $input = json_decode(file_get_contents("php://input"), true);
+    $dbConn = Database::connect(); // ensures singleton
     $status = false;
-    $message = 'Please check that body is valid JSON';
-}
-
-// function that sets http status code, and sends response
-function respond($status, $message, $code)
-{
-    $strHeader = '';
-    switch ($code) {
-        case 200:
-            $strHeader = "{$code} OK";
-            break;
-        case 201:
-            $strHeader = "{$code} Created";
-            break;
-        case 401:
-            $strHeader = "{$code} Unauthorized";
-            break;
-        case 400:
-            $strHeader = "{$code} Bad Request";
-            break;
-        case 403:
-            $strHeader = "{$code} Forbidden";
-            break;
-        case 500:
-            $strHeader = "{$code} Internal Server Error";
-            break;
-        default:
-            $strHeader = "500 Internal Server Error";
-            break;
+    $message = null;
+    if (json_last_error() !== JSON_ERROR_NONE) {
+        $GLOBALS['code'] = 400;
+        $status = false;
+        $message = 'Please check that body is valid JSON';
     }
 
-    $response = [
-        "status" => ($status) ? "success" : "error",
-        "timestamp" => time(),
-        "data" => $message
-    ];
+    // function that sets http status code, and sends response
+    function respond($status, $message, $code)
+    {
+        $strHeader = '';
+        switch ($code) {
+            case 200:
+                $strHeader = "{$code} OK";
+                break;
+            case 201:
+                $strHeader = "{$code} Created";
+                break;
+            case 401:
+                $strHeader = "{$code} Unauthorized";
+                break;
+            case 400:
+                $strHeader = "{$code} Bad Request";
+                break;
+            case 403:
+                $strHeader = "{$code} Forbidden";
+                break;
+            case 500:
+                $strHeader = "{$code} Internal Server Error";
+                break;
+            default:
+                $strHeader = "500 Internal Server Error";
+                break;
+        }
 
-    header("HTTP/1.1 {$strHeader}");
-    echo json_encode($response);
-}
+        $response = [
+            "status" => ($status) ? "success" : "error",
+            "timestamp" => time(),
+            "data" => $message
+        ];
+
+        header("HTTP/1.1 {$strHeader}");
+        echo json_encode($response);
+    }
 
     /*
         helper function for validateInput(). 
@@ -240,179 +240,166 @@ function respond($status, $message, $code)
         }
     } 
     else if ($input['type'] === 'GetAllProducts') {
-    $validInput = validateInput($input);
-    if(!$validInput['valid']){
-        $GLOBALS['code'] = 400;
-        $status = false;
-        $message = 'Invalid input';
-    } else {
-        try {
-            // Extract search parameters
-            $searchParams = [
-                'upc' => isset($input['upc']) ? (int) $input['upc'] : null,
-                'supplier_id' => isset($input['supplier_id']) ? (int) $input['supplier_id'] : null,
-                'product_name' => isset($input['product_name']) ? $input['product_name'] : null,
-                'brand' => isset($input['brand']) ? $input['brand'] : null,
-                'category_id' => isset($input['category_id']) ? (int) $input['category_id'] : null,
-                'include_subcategories' => isset($input['include_subcategories']) ?
-                    filter_var($input['include_subcategories'], FILTER_VALIDATE_BOOLEAN) :
-                    false
-            ];
-
-            // Handle subcategories if requested
-            if ($searchParams['category_id'] && $searchParams['include_subcategories']) {
-                $categoryIds = $dbConn->getCategoryWithDescendants($searchParams['category_id']);
-                if (!empty($categoryIds)) {
-                    $searchParams['category_ids'] = $categoryIds;
-                    unset($searchParams['category_id']);
-                }
-            }
-
-            $products = $dbConn->getAllProducts($searchParams);
-
-            if (!empty($products)) {
-                $GLOBALS['code'] = 200;
-                $status = true;
-                $message = [
-                    'count' => count($products),
-                    'products' => $products
+        $validInput = validateInput($input);
+        if(!$validInput['valid']){
+            $GLOBALS['code'] = 400;
+            $status = false;
+            $message = 'Invalid input';
+        } else {
+            try {
+                // Extract search parameters
+                $searchParams = [
+                    'upc' => isset($input['upc']) ? (int) $input['upc'] : null,
+                    'supplier_id' => isset($input['supplier_id']) ? (int) $input['supplier_id'] : null,
+                    'product_name' => isset($input['product_name']) ? $input['product_name'] : null,
+                    'brand' => isset($input['brand']) ? $input['brand'] : null,
+                    'category_id' => isset($input['category_id']) ? (int) $input['category_id'] : null,
+                    'include_subcategories' => isset($input['include_subcategories']) ?
+                        filter_var($input['include_subcategories'], FILTER_VALIDATE_BOOLEAN) :
+                        false
                 ];
-            } else {
-                $GLOBALS['code'] = 404;
-                $status = false;
-                $message = 'No products found matching your criteria';
-            }
 
-        } catch (Exception $e) {
-            error_log("GetAllProducts Error: " . $e->getMessage());
-            $GLOBALS['code'] = 500;
-            $status = false;
-            $message = 'Could not get products';
-        }
-    }
-} else if ($input['type'] === 'UpdateProduct') {
-    // Validate required fields
-    if (!isset($input['upc']) || !is_numeric($input['upc'])) {
-        $GLOBALS['code'] = 400;
-        $status = false;
-        $message = 'Valid upc is required';
-    } else {
-        try {
-            // Prepare update data with proper field length limits
-            $updateData = [
-                'upc' => (int) $input['upc'],
-                'product_name' => isset($input['product_name']) ? substr($input['product_name'], 0, 45) : null,
-                'desc' => isset($input['desc']) ? substr($input['desc'], 0, 300) : null,
-                'brand' => isset($input['brand']) ? substr($input['brand'], 0, 45) : null,
-                'category_id' => isset($input['category_id']) ? (int) $input['category_id'] : null,
-                'supplier_id' => isset($input['supplier_id']) ? (int) $input['supplier_id'] : null,
-                'dimensions' => isset($input['dimensions']) ? substr($input['dimensions'], 0, 45) : null,
-                'img_url' => isset($input['img_url']) ? substr($input['img_url'], 0, 45) : null
-            ];
-
-            // Validate at least one field is being updated
-            $updateFields = array_filter($updateData, function ($value, $key) {
-                return $key !== 'upc' && $value !== null;
-            }, ARRAY_FILTER_USE_BOTH);
-
-            if (empty($updateFields)) {
-                $GLOBALS['code'] = 400;
-                $status = false;
-                $message = 'No fields provided for update';
-                // respond(false, 'No fields provided for update', $GLOBALS['code']);
-                exit();
-            }
-
-            // Perform the update
-            $success = $dbConn->updateProduct($updateData);
-
-            if ($success) {
-                $GLOBALS['code'] = 200;
-                $status = true;
-                $message = 'Product updated successfully';
-                // respond(true, 'Product updated successfully', $GLOBALS['code']);
-            } else {
-                $GLOBALS['code'] = 404;
-                $status = false;
-                $message = 'Product not found or no changes made';
-                // respond(false, 'Product not found or no changes made', $GLOBALS['code']);
-            }
-
-        } catch (Exception $e) {
-            error_log("UpdateProduct Error: " . $e->getMessage());
-            $GLOBALS['code'] = 500;
-            $status = false;
-            $message = 'Server error: ' . $e->getMessage();
-            // respond(false, 'Server error: ' . $e->getMessage(), $GLOBALS['code']);
-        }
-    }
-
-} else if ($input['type'] === 'Categories') {
-    if ($dbConn->checkApiKey($input['apikey'])) {
-        if ($input['Operation'] === 'Add') {
-            $user = $dbConn->getUserWithApikey($input['apikey']);
-            if ($user['user_type'] === 'Admin' || $user['user_type'] === 'Business') {
-                try {
-                    $newName = $input['category_name'];
-                    $parentID = null;
-                    if (isset($input['parent_category_name'])) {
-                        $cat = $dbConn->getCategoryID($input['parent_category_name']);
-                        $parentID = $cat['category_id'];
+                // Handle subcategories if requested
+                if ($searchParams['category_id'] && $searchParams['include_subcategories']) {
+                    $categoryIds = $dbConn->getCategoryWithDescendants($searchParams['category_id']);
+                    if (!empty($categoryIds)) {
+                        $searchParams['category_ids'] = $categoryIds;
+                        unset($searchParams['category_id']);
                     }
-
-                    $id = $dbConn->addCategory($newName, $parentID);
-
-                    $GLOBALS['code'] = 201;
-                    $status = true;
-                    $message = ["category_id" => $id];
-
-                } catch (Exception $e) {
-                    $GLOBALS['code'] = 500;
-                    $status = false;
-                    $message = $e->getMessage();
                 }
-            } else {
-                $GLOBALS['code'] = 403;
-                $status = false;
-                $message = "User cannot do the following operatio ";
-            }
-        } else if ($input['Operation'] === 'Delete') {
-            $user = $dbConn->getUserWithApikey($input['apikey']);
-            if ($user['user_type'] === 'Admin' || $user['user_type'] === 'Business') {
-                try {
-                    $dbConn->deleteCategory($input['category_id']);
+
+                $products = $dbConn->getAllProducts($searchParams);
+
+                if (!empty($products)) {
                     $GLOBALS['code'] = 200;
                     $status = true;
-                    $message = "Successfully deleted category";
-
-                } catch (Exception $e) {
-                    $GLOBALS['code'] = 500;
+                    $message = [
+                        'count' => count($products),
+                        'products' => $products
+                    ];
+                } else {
+                    $GLOBALS['code'] = 404;
                     $status = false;
-                    $message = $e->getMessage();
+                    $message = 'No products found matching your criteria';
                 }
-            } else {
-                $GLOBALS['code'] = 403;
-                $status = false;
-                $message = "User cannot do the following operation.";
-            }
-        } else if ($input['Operation'] === 'Get') {
-            try {
-                $data = $dbConn->getCategories();
 
-                $GLOBALS['code'] = 200;
-                $status = true;
-                $message = $data;
             } catch (Exception $e) {
+                error_log("GetAllProducts Error: " . $e->getMessage());
                 $GLOBALS['code'] = 500;
                 $status = false;
-                $message = $e->getMessage();
+                $message = 'Could not get products';
             }
-        } else if ($input['Operation'] === 'Update') {
-            $user = $dbConn->getUserWithApikey($input['apikey']);
-            if ($user['user_type'] === 'Admin' || $user['user_type'] === 'Business') {
-                try {
+        }
+    } 
+    else if ($input['type'] === 'UpdateProduct') {
+        // Validate required fields
+        if (!isset($input['upc']) || !is_numeric($input['upc'])) {
+            $GLOBALS['code'] = 400;
+            $status = false;
+            $message = 'Valid upc is required';
+        } else {
+            try {
+                // Prepare update data with proper field length limits
+                $updateData = [
+                    'upc' => (int) $input['upc'],
+                    'product_name' => isset($input['product_name']) ? substr($input['product_name'], 0, 45) : null,
+                    'desc' => isset($input['desc']) ? substr($input['desc'], 0, 300) : null,
+                    'brand' => isset($input['brand']) ? substr($input['brand'], 0, 45) : null,
+                    'category_id' => isset($input['category_id']) ? (int) $input['category_id'] : null,
+                    'supplier_id' => isset($input['supplier_id']) ? (int) $input['supplier_id'] : null,
+                    'dimensions' => isset($input['dimensions']) ? substr($input['dimensions'], 0, 45) : null,
+                    'img_url' => isset($input['img_url']) ? substr($input['img_url'], 0, 45) : null
+                ];
 
-                    $data = $dbConn->updateCategory($input['category_name'], $input['category_id']);
+                // Validate at least one field is being updated
+                $updateFields = array_filter($updateData, function ($value, $key) {
+                    return $key !== 'upc' && $value !== null;
+                }, ARRAY_FILTER_USE_BOTH);
+
+                if (empty($updateFields)) {
+                    $GLOBALS['code'] = 400;
+                    $status = false;
+                    $message = 'No fields provided for update';
+                    // respond(false, 'No fields provided for update', $GLOBALS['code']);
+                    exit();
+                }
+
+                // Perform the update
+                $success = $dbConn->updateProduct($updateData);
+
+                if ($success) {
+                    $GLOBALS['code'] = 200;
+                    $status = true;
+                    $message = 'Product updated successfully';
+                    // respond(true, 'Product updated successfully', $GLOBALS['code']);
+                } else {
+                    $GLOBALS['code'] = 404;
+                    $status = false;
+                    $message = 'Product not found or no changes made';
+                    // respond(false, 'Product not found or no changes made', $GLOBALS['code']);
+                }
+
+            } catch (Exception $e) {
+                error_log("UpdateProduct Error: " . $e->getMessage());
+                $GLOBALS['code'] = 500;
+                $status = false;
+                $message = 'Server error: ' . $e->getMessage();
+                // respond(false, 'Server error: ' . $e->getMessage(), $GLOBALS['code']);
+            }
+        }
+
+    } 
+    else if ($input['type'] === 'Categories') {
+        if ($dbConn->checkApiKey($input['apikey'])) {
+            if ($input['operation'] === 'Add') {
+                $user = $dbConn->getUserWithApikey($input['apikey']);
+                if ($user['user_type'] === 'Admin' || $user['user_type'] === 'Business') {
+                    try {
+                        $newName = $input['category_name'];
+                        $parentID = null;
+                        if (isset($input['parent_category_name'])) {
+                            $cat = $dbConn->getCategoryID($input['parent_category_name']);
+                            $parentID = $cat['category_id'];
+                        }
+
+                        $id = $dbConn->addCategory($newName, $parentID);
+
+                        $GLOBALS['code'] = 201;
+                        $status = true;
+                        $message = ["category_id" => $id];
+
+                    } catch (Exception $e) {
+                        $GLOBALS['code'] = 500;
+                        $status = false;
+                        $message = $e->getMessage();
+                    }
+                } else {
+                    $GLOBALS['code'] = 403;
+                    $status = false;
+                    $message = "User cannot do the following operation.";
+                }
+            } else if ($input['operation'] === 'Delete') {
+                $user = $dbConn->getUserWithApikey($input['apikey']);
+                if ($user['user_type'] === 'Admin' || $user['user_type'] === 'Business') {
+                    try {
+                        $dbConn->deleteCategory($input['category_id']);
+                        $GLOBALS['code'] = 200;
+                        $status = true;
+                        $message = "Successfully deleted category";
+
+                    } catch (Exception $e) {
+                        $GLOBALS['code'] = 500;
+                        $status = false;
+                        $message = $e->getMessage();
+                    }
+                } else {
+                    $GLOBALS['code'] = 403;
+                    $status = false;
+                    $message = "User cannot do the following operation.";
+                }
+            } else if ($input['operation'] === 'Get') {
+                try {
+                    $data = $dbConn->getCategories();
 
                     $GLOBALS['code'] = 200;
                     $status = true;
@@ -422,55 +409,126 @@ function respond($status, $message, $code)
                     $status = false;
                     $message = $e->getMessage();
                 }
+            } else if ($input['operation'] === 'Update') {
+                $user = $dbConn->getUserWithApikey($input['apikey']);
+                if ($user['user_type'] === 'Admin' || $user['user_type'] === 'Business') {
+                    try {
+
+                        $data = $dbConn->updateCategory($input['category_name'], $input['category_id']);
+
+                        $GLOBALS['code'] = 200;
+                        $status = true;
+                        $message = $data;
+                    } catch (Exception $e) {
+                        $GLOBALS['code'] = 500;
+                        $status = false;
+                        $message = $e->getMessage();
+                    }
+                } else {
+                    $GLOBALS['code'] = 403;
+                    $status = false;
+                    $message = "User cannot do the following operation.";
+                }
+            } else {
+                $GLOBALS['code'] = 400;
+                $status = false;
+                $message = "Unknown Operation. Please specify an Operation";
+            }
+        }
+        else{
+            $GLOBALS['code'] = 401;
+            $status = false;
+            $message = "Apikey is invalid";
+        }
+    } 
+    else if ($input['type'] === 'Users') {
+        if($dbConn->checkApiKey($input['apikey'])){
+            $user = $dbConn->getUserWithApikey($input['apikey']);
+            if($user['user_type'] === 'Admin'){
+                if($input['operation'] === 'Get'){
+                    try{
+                        $data = $dbConn->getAllUsers();
+
+                        $GLOBALS['code'] = 200;
+                        $status = true;
+                        $message = $data;
+                    }
+                    catch(Exception $e){
+                        $GLOBALS['code'] = 500;
+                        $status = false;
+                        $message = $e->getMessage();
+                    }
+                }
+                else if($input['operation'] === 'Delete'){
+                    try{
+                        $dbConn->deleteUser($input['user_id']);
+
+                        $GLOBALS['code'] = 200;
+                        $status = true;
+                        $message = "Successfully deleted.";
+                    }
+                    catch(Exception $e){
+                        $GLOBALS['code'] = 500;
+                        $status = false;
+                        $message = $e->getMessage();
+                    }
+                }
+            }
+            else{
+                $GLOBALS['code'] = 403;
+                $status = false;
+                $message = "User cannot do the following operation.";
+            }
+        }
+        else{
+            $GLOBALS['code'] = 401;
+            $status = false;
+            $message = "Apikey is invalid";
+        }
+    }
+    else if($input['type'] === 'Reviews'){
+        if($dbConn->checkApiKey($input['apikey'])){
+
+        }
+        else{
+            $GLOBALS['code'] = 401;
+            $status = false;
+            $message = "Apikey is invalid";
+        }
+    } 
+    else if ($input['type'] === 'DeleteProduct') {
+        if ($dbConn->checkApiKey($input['apikey'])) {
+            $user = $dbConn->getUserWithApikey($input['apikey']);
+            if ($user['user_type'] === 'Admin' || $user['user_type'] === 'Business') {
+                try {
+                    $dbConn->deleteProduct($input['upc']);
+                    $GLOBALS['code'] = 200;
+                    $status = true;
+                    $message = "Product deleted successfully";
+
+                } catch (Exception $e) {
+                    $GLOBALS['code'] = 500;
+                    $status = false;
+                    $message = "Error deleting product: " . $e->getMessage();
+                }
             } else {
                 $GLOBALS['code'] = 403;
                 $status = false;
-                $message = "User cannot do the following operatio ";
+                $message = "User does not have permission to delete products";
             }
         } else {
+            $GLOBALS['code'] = 401;
+            $status = false;
+            $message = "Invalid API key";
+
+        }
+    } 
+    else {
+        if (empty($GLOBALS['code']))
             $GLOBALS['code'] = 400;
-            $status = false;
-            $message = "Unknown Operation. Please specify an Operation";
-        }
-    }
-} else if ($input['type'] === 'User') {
-
-    }
-    else if($input['type'] === 'Review'){
-
-} else if ($input['type'] === 'DeleteProduct') {
-    if ($dbConn->checkApiKey($input['apikey'])) {
-        $user = $dbConn->getUserWithApikey($input['apikey']);
-        if ($user['user_type'] === 'Admin' || $user['user_type'] === 'Business') {
-            try {
-                $dbConn->deleteProduct($input['upc']);
-                $GLOBALS['code'] = 200;
-                $status = true;
-                $message = "Product deleted successfully";
-
-            } catch (Exception $e) {
-                $GLOBALS['code'] = 500;
-                $status = false;
-                $message = "Error deleting product: " . $e->getMessage();
-            }
-        } else {
-            $GLOBALS['code'] = 403;
-            $status = false;
-            $message = "User does not have permission to delete products";
-        }
-    } else {
-        $GLOBALS['code'] = 401;
         $status = false;
-        $message = "Invalid API key";
-
+        $message = "Please specify type or check request body for mistakes";
     }
-} else 
-{
-    if (empty($GLOBALS['code']))
-        $GLOBALS['code'] = 400;
-    $status = false;
-    $message = "Please specify type or check request body for mistakes";
-}
 
     respond($status, $message, $GLOBALS['code']);
 
