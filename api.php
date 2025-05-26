@@ -434,6 +434,118 @@ else if ($input['type'] === 'Login') {
 
 } else if ($input['type'] === 'Review') {
 
+} else if ($input['type'] === 'addSupplier') {
+    if ($dbConn->checkApiKey($input['apikey'])) {
+        $user = $dbConn->getUserWithApikey($input['apikey']);
+        if ($user['user_type'] === 'Admin') {
+            try {
+                $name = $input['supplier_name'];
+                $contactInfo = $input['contact_info'];
+                // $supplierPhone = $input['supplier_phone']
+
+                // Add supplier
+                $dbConn->addSupplier($name, $contactInfo);
+                $GLOBALS['code'] = 201;
+                $status = true;
+                $message = "Supplier added successfully";
+
+            } catch (Exception $e) {
+                $GLOBALS['code'] = 500;
+                $status = false;
+                $message = "Error adding supplier: " . $e->getMessage();
+            }
+        } else {
+            $GLOBALS['code'] = 403;
+            $status = false;
+            $message = "User does not have permission to add suppliers";
+        }
+    } else {
+        $GLOBALS['code'] = 401;
+        $status = false;
+        $message = "Invalid API key";
+    }
+} else if ($input['type'] === 'GetAllSuppliers') {
+    if ($dbConn->checkApiKey($input['apikey'])) {
+        try {
+            $suppliers = $dbConn->getAllSuppliers();
+            if (!empty($suppliers)) {
+                $GLOBALS['code'] = 200;
+                $status = true;
+                $message = $suppliers;
+            } else {
+                $GLOBALS['code'] = 404;
+                $status = false;
+                $message = "No suppliers found";
+            }
+        } catch (Exception $e) {
+            $GLOBALS['code'] = 500;
+            $status = false;
+            $message = "Error retrieving suppliers: " . $e->getMessage();
+        }
+    } else {
+        $GLOBALS['code'] = 401;
+        $status = false;
+        $message = "Invalid API key";
+    }
+
+}  else if ($input["type"] === "UpdateSupplier") {
+    if ($dbConn->checkApiKey($input['apikey'])) {
+        $user = $dbConn->getUserWithApikey($input['apikey']);
+        if ($user['user_type'] === 'Admin') {
+            try {
+                $supplierId = $input['supplier_id'];
+                $name = isset($input['supplier_name']) ? $input['supplier_name'] : null;
+                $contactInfo = isset($input['contact_info']) ? $input['contact_info'] : null;
+
+                // Update supplier
+                $dbConn->updateSupplier($supplierId, $name, $contactInfo);
+                $GLOBALS['code'] = 200;
+                $status = true;
+                $message = "Supplier updated successfully";
+
+            } catch (Exception $e) {
+                $GLOBALS['code'] = 500;
+                $status = false;
+                $message = "Error updating supplier: " . $e->getMessage();
+            }
+        } else {
+            $GLOBALS['code'] = 403;
+            $status = false;
+            $message = "User does not have permission to update suppliers";
+        }
+    } else {
+        $GLOBALS['code'] = 401;
+        $status = false;
+        $message = "Invalid API key";
+    }
+} else if ($input['type'] === 'DeleteSupplier') {
+    if ($dbConn->checkApiKey($input['apikey'])) {
+        $user = $dbConn->getUserWithApikey($input['apikey']);
+        if ($user['user_type'] === 'Admin') {
+            try {
+                $supplierId = $input['supplier_id'];
+                // Delete supplier
+                $dbConn->deleteSupplier($supplierId);
+                $GLOBALS['code'] = 200;
+                $status = true;
+                $message = "Supplier deleted successfully";
+
+            } catch (Exception $e) {
+                $GLOBALS['code'] = 500;
+                $status = false;
+                $message = "Error deleting supplier: " . $e->getMessage();
+            }
+        } else {
+            $GLOBALS['code'] = 403;
+            $status = false;
+            $message = "User does not have permission to delete suppliers";
+        }
+    } else {
+        $GLOBALS['code'] = 401;
+        $status = false;
+        $message = "Invalid API key";
+    }
+
 } else if ($input['type'] === 'DeleteProduct') {
     if ($dbConn->checkApiKey($input['apikey'])) {
         $user = $dbConn->getUserWithApikey($input['apikey']);

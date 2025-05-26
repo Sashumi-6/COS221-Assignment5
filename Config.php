@@ -336,9 +336,55 @@ private function getDescendantsRecursive($categories, $parentId) {
 
 }
 
+public function getAllSuppliers() {
+    $query = "SELECT supplier_id, supplier_name, contact_info FROM suppliers";
+    $stmt = $this->prepare($query);
+    if ($stmt->execute()) {
+        $result = $stmt->get_result();
+        return $result->fetch_all(MYSQLI_ASSOC);
+    } else {
+        throw new Exception("Couldn't retrieve suppliers from database.");
+    }
+}
+/**
+     * add a new supplier
+     */
+    public function addSupplier($name, $contactInfo) {
+        $query = "INSERT INTO suppliers (supplier_name, contact_info) VALUES (?, ?)";
+        $stmt = $this->prepare($query);
+        $stmt->bind_param('ss', $name, $contactInfo);
+        
+        if (!$stmt->execute()) {
+            throw new Exception("Couldn't add supplier to the database.");
+        }
+
+        return $this->conn->insert_id; // Return the ID of the newly inserted supplier
+    }   
+
     /**
      * add a new product
      */
+
+     public function updateSupplier($supplierId, $name, $contactInfo) {
+        $query = "UPDATE suppliers SET supplier_name = ?, contact_info = ? WHERE supplier_id = ?";
+        $stmt = $this->prepare($query);
+        $stmt->bind_param('ssi', $name, $contactInfo, $supplierId);
+        
+        if (!$stmt->execute()) {
+            throw new Exception("Couldn't update supplier in the database.");
+        }
+    }
+
+    public function deleteSupplier($supplierId) {
+        $query = "DELETE FROM suppliers WHERE supplier_id = ?";
+        $stmt = $this->prepare($query);
+        $stmt->bind_param('i', $supplierId);
+        
+        if (!$stmt->execute()) {
+            throw new Exception("Couldn't delete supplier from the database.");
+        }
+    }
+    
     public function addCategory($name, $parentID=null){
         $query = "INSERT INTO categories (category_name" ;
         if(isset($parentID)) $query .= ", parent_category_id";
