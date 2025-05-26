@@ -1,12 +1,14 @@
 const apiUrl = "https://wheatley.cs.up.ac.za/u24676111/api.php";
 const apikey = sessionStorage.getItem("apikey");
-
+let allProductsCache = [];
 $(document).ready(() => {
     loadCategories();
     loadProducts();
 
     // Setup filter listener
     $('#bar').on('input', applyFilters);
+    $('#sort-select').on('change', applyFilters);
+    $('#brand-select').on('change', applyFilters);
 });
 
 function loadProducts(filters = {}) {
@@ -35,10 +37,15 @@ function loadProducts(filters = {}) {
 }
 
 function renderProducts(products) {
+    allProductsCache = products;
     const container = $(".container");
     container.empty();
 
+    const brandSet = new Set();
+
     products.forEach(prod => {
+        brandSet.add(prod.brand);
+
         const card = $(`
             <div class="product-card">
                 <div class="product-image">
@@ -55,6 +62,16 @@ function renderProducts(products) {
             </div>
         `);
         container.append(card);
+    });
+
+    updateBrandDropdown(brandSet);
+}
+
+function updateBrandDropdown(brands) {
+    const brandSelect = $('#brand-select');
+    brandSelect.empty().append(`<option value="">Filter by Brand</option>`);
+    Array.from(brands).sort().forEach(brand => {
+        brandSelect.append(`<option value="${brand}">${brand}</option>`);
     });
 }
 
@@ -110,18 +127,37 @@ function renderCategoryTree(tree, parent = $("#categories-container #list-items"
 // Collect and apply all filters
 function applyFilters(extra = {}) {
     const searchTerm = $('#bar').val().trim().toLowerCase();
+    const selectedBrand = $('#brand-select').val();
+    const sortOption = $('#sort-select').val();
 
-    const filters = {
-        ...extra,
-        apikey
-    };
+    let filtered = [...allProductsCache];
 
     if (searchTerm) {
-        filters.product_name = searchTerm;
+        filtered = filtered.filter(p =>
+            p.product_name.toLowerCase().includes(searchTerm) ||
+            p.description?.toLowerCase().includes(searchTerm)
+        );
     }
 
-    // You can add UI dropdowns/sliders for price and brand
-    // For now, simulate filters manually or expand this function later
+    if (selectedBrand) {
+        filtered = filtered.filter(p => p.brand === selectedBrand);
+    }
 
-    loadProducts(filters);
+    // Sorting
+    switch (sortOption) {
+        case "az":
+            filtered.sort((a, b) => a.product_name.localeCompare(b.product_name));
+            break;
+        case "za":
+            filtered.sort((a, b) => b.product_name.localeCompare(a.product_name));
+            break;
+        case "priceLowHigh":
+            filtered.sort((a, b) => a.price - b.price);
+            break;
+        case "priceHighLow":
+            filtered.sort((a, b) => b.price - a.price);
+            break;
+    }
+
+    renderProducts(filtered);
 }

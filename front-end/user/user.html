@@ -17,12 +17,7 @@
   <body>
      <div id="user-container">
         <div id="user-top-bar" class="roboto-normal">
-            <div id="filter-options-container">
-                <a class="component">Alphabetical</a>
-                <a class="component">Category</a>
-                <a class="component">Brand</a>
-            </div>
-
+  
             <!-- TODO style search -->
             <div id="search-container">
                 <input id="bar" class="component" type="text" placeholder="placeholder-search">
@@ -35,7 +30,21 @@
                     <a id="title" class="roboto-normal">Categories</a>
                     <div id="list-items"></div>
                 </div>
-                
+                <div id="filter-options-container">
+                <select id="sort-select" class="component">
+                    <option value="">Sort By</option>
+                    <option value="az">A → Z</option>
+                    <option value="za">Z → A</option>
+                    <option value="priceLowHigh">Price: Low to High</option>
+                    <option value="priceHighLow">Price: High to Low</option>
+                </select>
+
+                <select id="brand-select" class="component">
+                    <option value="">Filter by Brand</option>
+                    <!-- JS will fill this dynamically -->
+                </select>
+            </div>
+
             </div>
     
       <div class="container">
