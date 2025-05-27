@@ -56,6 +56,16 @@
     transform: scale(1);
 }
 
+#stockist-container{
+    height: 350px;
+    overflow-y: auto;
+}
+
+#categories-container{
+    height: 350px;
+    overflow-y: auto;
+}
+
 #search-container {
     float: right;
     display: flex;

@@ -201,6 +201,62 @@ function editSideContent(event) {
         input.toggleClass('hidden');
     } else {
         // API FUNCTIONALITY DONE HERE
+        if(type == "categories"){
+                let req = {
+                    type : capitalizeFirstLetter(type),
+                    operation : "Update",
+                    apikey : sessionStorage.getItem('apikey'),
+                    category_name : input,
+                    category_id : id
+                };
+
+                ajaxRequest(req)
+                .done(response => {
+                    if(response.status){
+                        upd_btn.text("Edit");
+                        del_btn.toggleClass('hidden');
+                        input.toggleClass('hidden');
+                        itemName.text(input.val());
+                        itemName.toggleClass('hidden');
+                    }
+                    else{
+                        alert(response.data || 'Attempt to add category failed.');
+                    }
+
+                })
+                .fail((jqXHR, textStatus, errorThrown) => {
+                    console.log(jqXHR.responseText);
+                    console.error("AJAX error while adding category:", textStatus, errorThrown);
+                });
+        }
+        else if(type == "stockist"){
+            let req = {
+                type : "UpdateRetailer",
+                apikey : sessionStorage.getItem('apikey'),
+                retailer_name : input,
+                retailer_id : id
+            };
+
+            ajaxRequest(req)
+            .done(response => {
+                if(response.status){
+                    upd_btn.text("Edit");
+                    del_btn.toggleClass('hidden');
+                    input.toggleClass('hidden');
+                    itemName.text(input.val());
+                    itemName.toggleClass('hidden');
+                }
+                else{
+                    alert(response.data || 'Attempt to add category failed.');
+                }
+
+            })
+            .fail((jqXHR, textStatus, errorThrown) => {
+                console.log(jqXHR.responseText);
+                console.error("AJAX error while adding category:", textStatus, errorThrown);
+            });
+        }
+
         // UPDATE EVERYWHERE WHERE THIS CATEGORY EXISTS
         // THEN RELOAD ALL PRODUCTS ? - MAYBE CAN JUST TRY TO FIND WHERE THIS VAL EXITS IN THE PAGE
         //      => IN THE CORRECT CONTEXT
@@ -224,31 +280,113 @@ function sideContent_add_del(event) {
         let item = items.find('#' + id);
 
         if ($('.item#' + addInputValue).length == 0) {
-            sideContentUpdate(type, addInputValue);
-            item.find('input').attr('placeholder', 'Success')
-
+        
             // IMPLEMENT API SHIT HERE !!!
+            if(type == "categories"){
+                let input = {
+                    type : capitalizeFirstLetter(type),
+                    operation : "Add",
+                    apikey : sessionStorage.getItem('apikey'),
+                    category_name : addInputValue,
+                    parent_category_name : null
+                };
+
+                ajaxRequest(input)
+                .done(response => {
+                    if(response.status){
+                        sideContentUpdate(type, addInputValue);
+                        item.find('input').attr('placeholder', 'Success')
+                    }
+                    else{
+                        alert(response.data || 'Attempt to add category failed.');
+                    }
+
+                })
+                .fail((jqXHR, textStatus, errorThrown) => {
+                    console.log(jqXHR.responseText);
+                    console.error("AJAX error while adding category:", textStatus, errorThrown);
+                });
+            }
+            else if(type == "stockist"){
+                let input = {
+                    type : "addRetailer",
+                    apikey : sessionStorage.getItem('apikey'),
+                    retailer_name : addInputValue,
+                    website : `https://${addInputValue}.co.za`,
+                    logo_url : "logo.jpeg",
+                    location : "Johannesburg",
+                    contact_email : `noreply@${addInputValue}.com`
+                };
+
+                ajaxRequest(input)
+                .done(response => {
+                    if(response.status){
+                        sideContentUpdate(type, addInputValue);
+                        item.find('input').attr('placeholder', 'Success')
+                    }
+                    else{
+                        alert(response.data || 'Attempt to add category failed.');
+                    }
+
+                })
+                .fail((jqXHR, textStatus, errorThrown) => {
+                    console.log(jqXHR.responseText);
+                    console.error("AJAX error while adding category:", textStatus, errorThrown);
+                });
+            }
+
         } else item.find('input').attr('placeholder', 'Error - Try again');
         item.find('input').val('');
     }
 
     if (operation == "del") {
-        $('.item#' + id).remove();
         // IMPLEMENT API SHIT HERE
-    }
-}
+        if(type == "categories"){
+                let input = {
+                    type : capitalizeFirstLetter(type),
+                    operation : "Delete",
+                    apikey : sessionStorage.getItem('apikey'),
+                    category_id : id
+                };
 
-function ajaxRequest(input) {
-    const username = "u24845061", password = "Carbon123";
-    return $.ajax({
-        url: "https://wheatley.cs.up.ac.za/u24845061/COS221APITesting/api.php",
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-            "Authorization": "Basic " + btoa(username + ":" + password)
-        },
-        data: JSON.stringify(input)
-    });
+                ajaxRequest(input)
+                .done(response => {
+                    if(response.status){
+                        $('.item#' + id).remove();
+                    }
+                    else{
+                        alert(response.data || 'Attempt to removing category failed.');
+                    }
+
+                })
+                .fail((jqXHR, textStatus, errorThrown) => {
+                    console.log(jqXHR.responseText);
+                    console.error("AJAX error while removing category:", textStatus, errorThrown);
+                });
+        }
+        else if(type == "stockist"){
+            let input = {
+                type : "DeleteRetailer",
+                apikey : sessionStorage.getItem('apikey'),
+                retailer_id : id
+            };
+
+            ajaxRequest(input)
+            .done(response => {
+                if(response.status){
+                    $('.item#' + id).remove();
+                }
+                else{
+                    alert(response.data || 'Attempt to remove retailer failed.');
+                }
+
+            })
+            .fail((jqXHR, textStatus, errorThrown) => {
+                console.log(jqXHR.responseText);
+                console.error("AJAX error while removing retailer:", textStatus, errorThrown);
+            });
+        }
+    }
 }
 
 // Tmp Data
@@ -256,19 +394,23 @@ var categoryTmp = ["Category1", "Category2", "Category3", "Category4", "Category
 var StockistTmp = ["Stockist1", "Stockist2", "Stockist3", "Stockist4", "Stockist5", "Stockist6"]
 
 function ajaxRequest(input) {
-        let username = "u24845061", password = "Carbon123";
-        let settings = {
-            url: "https://wheatley.cs.up.ac.za/u24845061/COS221APITesting/api.php",
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "Authorization": "Basic " + btoa(username + ":" + password)
-            },
-            data: JSON.stringify(input),
-        };
+    let username = "u24845061", password = "Carbon123";
+    let settings = {
+        url: "https://wheatley.cs.up.ac.za/u24845061/COS221APITesting/api.php",
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": "Basic " + btoa(username + ":" + password)
+        },
+        data: JSON.stringify(input),
+    };
 
-        return $.ajax(settings);
-    }
+    return $.ajax(settings);
+}
+
+function capitalizeFirstLetter(val) {
+    return String(val).charAt(0).toUpperCase() + String(val).slice(1);
+}
 
 let products = [
     {
@@ -346,8 +488,10 @@ function loadCategories() {
     ajaxRequest(requestData)
     .done((response) => {
         if (response.status && Array.isArray(response.data)) {
-            //const categoryTree = buildCategoryTree(response.data);
-            renderCategoryTree(response.data);
+            //const categoryTree = buildCategoryTree(response.data);categories
+            let data = renderCategoryTree(response.data);
+            data.forEach((cat) => { sideContentUpdate('categories', cat.category_name) });
+
         } else {
             console.error("Failed to load categories: Invalid response format", response);
         }
@@ -359,26 +503,16 @@ function loadCategories() {
 }//end loadCategories
 
 function renderCategoryTree(tree, parent = $("#categories-container"), level = 0) {
+    let toRet = [];
     tree.forEach(cat => {
-        const entry = $(`<button class="category-button" style="margin-left: ${level * 15}px;">${cat.category_name}</button>`);
-        
-        const childrenContainer = $(`<div class="child-categories" style="display: none;"></div>`);
-
-        entry.on('click', function () {
-            // Toggle visibility of children
-            childrenContainer.toggle();
-
-            // Filter products for this category
-            applyFilters({ category_id: cat.category_id, include_subcategories: true });
-        });
-
-        parent.append(entry);
-        parent.append(childrenContainer);
+        toRet.push(cat);
 
         if (cat.children.length > 0) {
-            renderCategoryTree(cat.children, childrenContainer, level + 1);
+            renderCategoryTree(cat.children, $("#categories-container"), level + 1);
         }
     });
+
+    return toRet;
 }//end renderCategories
 
 function loadStockists(){
@@ -389,7 +523,8 @@ function loadStockists(){
     ajaxRequest(input)
     .done(response => {
         if(response.status){
-            
+            let data = response.data;
+            data.forEach((stock) => { sideContentUpdate('stockist', stock.retailer_name) });
         }
         else{
             alert(response.data || 'Retrieval of retailers failed.');
@@ -409,7 +544,7 @@ let StockistInit = 0;
 function webLoad() {
     //Load side content
     loadCategories();
-    StockistTmp.forEach((stock) => { sideContentUpdate('stockist', stock) });
+    loadStockists();
 
     ajaxRequest({
         type: "GetAllProducts"
