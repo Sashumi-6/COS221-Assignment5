@@ -1,11 +1,13 @@
 body {
     display: flex;
-    flex-direction: column;
-    justify-content: center;
+    flex-direction: row;
+    justify-content: space-around;
     align-items: center;
     background-image: url('img/blob-login.svg');
     background-repeat: no-repeat;
     background-size: cover;
+    gap: 1em;
+    padding: 5em 0em;
 }
 
 #title {
@@ -95,3 +97,9 @@ body {
     0 4px 6px 0 #cecece;
 }
 
+#top-products-widget {
+    display: flex;
+    flex: 1 0 auto;
+    justify-content: center;
+    align-items: center;
+}
