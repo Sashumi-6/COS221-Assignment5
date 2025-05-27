@@ -32,7 +32,7 @@ function validateForm(){
         return false;
     }
 
-    const emRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$/;
+    const emRegex = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
     if (!emRegex.test(email)) {
         errorEl.textContent = 'Invalid email format.';
         return false;

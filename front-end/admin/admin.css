@@ -172,6 +172,16 @@
     padding: 0.8em;
 }
 
+#products-container {
+    height: 400px;
+    overflow-y: auto;
+}
+
+#users-container {
+    overflow: scroll;
+    height: 4%;
+}
+
 .product, .user {
     background-color: #66615E;
     border-radius: 4px;
