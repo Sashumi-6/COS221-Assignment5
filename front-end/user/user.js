@@ -5,7 +5,7 @@ let originalProducts = [];
 let categoryTree = [];
 
 (function checkAuth() {
-  if (!apiKey) {
+  if (!apikey) {
     alert('You must be signed in to view this page.');
     // Redirect to login page
     window.location.href = 'login.html';
