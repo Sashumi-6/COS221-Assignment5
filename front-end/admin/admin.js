@@ -262,11 +262,11 @@ function editSideContent(event) {
                 ajaxRequest(req)
                 .done(response => {
                     if(response.status){
-                        upd_btn.text("Edit");
-                        del_btn.toggleClass('hidden');
-                        input.toggleClass('hidden');
-                        itemName.text(input.val());
-                        itemName.toggleClass('hidden');
+                        // upd_btn.text("Edit");
+                        // del_btn.toggleClass('hidden');
+                        // input.toggleClass('hidden');
+                        // itemName.text(input.val());
+                        // itemName.toggleClass('hidden');
                     }
                     else{
                         alert(response.data || 'Attempt to add category failed.');
@@ -289,11 +289,11 @@ function editSideContent(event) {
             ajaxRequest(req)
             .done(response => {
                 if(response.status){
-                    upd_btn.text("Edit");
-                    del_btn.toggleClass('hidden');
-                    input.toggleClass('hidden');
-                    itemName.text(input.val());
-                    itemName.toggleClass('hidden');
+                    // upd_btn.text("Edit");
+                    // del_btn.toggleClass('hidden');
+                    // input.toggleClass('hidden');
+                    // itemName.text(input.val());
+                    // itemName.toggleClass('hidden');
                 }
                 else{
                     alert(response.data || 'Attempt to add category failed.');
@@ -399,6 +399,7 @@ function sideContent_add_del(event) {
                 ajaxRequest(input)
                 .done(response => {
                     if(response.status){
+                        alert("Retailer successfully deleted");
                         $('.item#' + id).remove();
                     }
                     else{
@@ -421,6 +422,7 @@ function sideContent_add_del(event) {
             ajaxRequest(input)
             .done(response => {
                 if(response.status){
+                    alert("Retailer successfully deleted");
                     $('.item#' + id).remove();
                 }
                 else{
@@ -705,39 +707,6 @@ function webLoad() {
         $('#users-container .user').remove();
         us.forEach(usersUpdate);
     }
-
-let CategoryInit = 0;
-let StockistInit = 0;
-
-function webLoad() {
-    categoryTmp.forEach((cat) => { sideContentUpdate('categories', cat) });
-    StockistTmp.forEach((stock) => { sideContentUpdate('stockist', stock) });
-
-    ajaxRequest({type: "GetAllProducts"}).then((response) => {
-        console.log("API Response:", response);
-        fetchedProducts = response.data.products.slice();
-        initBrandDropdown(fetchedProducts);
-        initCategoryDropdown(fetchedProducts);
-        
-        return ajaxRequest({
-            type: "Users",
-            apikey: sessionStorage.getItem('apikey'),
-            operation: "Get"
-        });
-    }).then((response) => {
-        console.log("API Response:", response);
-        if (response.status && response.data) {
-            fetchedUsers = response.data.slice();
-            fetchedUsers.forEach(usersUpdate);
-        }
-    }).catch((error) => {
-        console.error("Error:", error);
-    }).finally(() => {
-        $('#bar').off('input').on('input', applyAdminFilters);
-        $('#brand-select, #category-select, #sort-select')
-            .off('change')
-            .on('change', applyAdminFilters);
-    });
 }
 
 $(document).ready(webLoad);
