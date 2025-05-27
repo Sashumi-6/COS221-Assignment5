@@ -17,11 +17,11 @@
   <body>
      <div id="user-container">
         <div id="user-top-bar" class="roboto-normal">
-            <div id="filter-options-container">
+            <!-- <div id="filter-options-container">
                 <a class="component">Alphabetical</a>
                 <a class="component">Category</a>
                 <a class="component">Brand</a>
-            </div>
+            </div> -->
 
             <!-- TODO style search -->
             <div id="search-container">
@@ -35,63 +35,22 @@
                     <a id="title" class="roboto-normal">Categories</a>
                     <div id="list-items"></div>
                 </div>
-                <div id="stockist-container" class="side-content-display">
-                    <a id="title">Stockists</a>
-                    <div id="list-items"></div>
-                </div>
+                <div id="filter-options-container">
+                <select id="sort-select" class="component">
+                    <option value="">Sort By</option>
+                    <option value="az">A → Z</option>
+                    <option value="za">Z → A</option>
+                </select>
+
+                <select id="brand-select" class="component">
+                    <option value="">Filter by Brand</option>
+                    <!-- JS will fill this dynamically -->
+                </select>
+            </div>
             </div>
     
       <div class="container">
-        <div class="product-card">
-          <div class="product-image">
-            <img src="https://cdn.shopify.com/s/files/1/0533/2089/files/placeholder-images-image_large.png?v=1530129081" alt="Product Image">
-          </div>
-          <div class="product-details">
-            <h2 class="product-title">Product Name</h2>
-            <p class="product-price">$9.99</p>
-            <p class="product-description">This is a brief description of the product.</p>
-              <button class="compare">View Product</button>
-          </div>
-        </div>
-        <div class="product-card">
-          <div class="product-image">
-            <img src="https://cdn.shopify.com/s/files/1/0533/2089/files/placeholder-images-image_large.png?v=1530129081" alt="Product Image">
-          </div>
-          <div class="product-details">
-            <h2 class="product-title">Product Name</h2>
-            <p class="product-price">$9.99</p>
-            <p class="product-description">This is a brief description of the product.</p>
-            <div class="userbuttons userbuttons-classic">
-              <button class="compare">View Product</button>
-            </div>
-          </div>
-        </div>
-        <div class="product-card">
-          <div class="product-image">
-            <img src="https://cdn.shopify.com/s/files/1/0533/2089/files/placeholder-images-image_large.png?v=1530129081" alt="Product Image">
-          </div>
-          <div class="product-details">
-            <h2 class="product-title">Product Name</h2>
-            <p class="product-price">$9.99</p>
-            <p class="product-description">This is a brief description of the product.</p>
-            <div class="userbuttons userbuttons-classic">
-              <button class="compare">View Product</button>
-            </div>
-          </div>
-        </div>
-        <div class="product-card">
-          <div class="product-image">
-            <img src="https://cdn.shopify.com/s/files/1/0533/2089/files/placeholder-images-image_large.png?v=1530129081" alt="Product Image">
-          </div>
-          <div class="product-details">
-            <h2 class="product-title">Product Name</h2>
-            <p class="product-price">$9.99</p>
-            <p class="product-description">This is a brief description of the product.</p>
-            <div class="userbuttons userbuttons-classic">
-              <button class="compare">View Product</button>
-            </div>
-          </div>
-        </div>
+        <!-- will be added dynamically -->
       </div>
     </div>
     </body>

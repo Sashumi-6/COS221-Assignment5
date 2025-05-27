@@ -15,10 +15,13 @@ function ajaxRequest(input) {
             "Authorization": "Basic " + btoa(username + ":" + password)
         },
         data: JSON.stringify(input),
+        
     };
-
+    console.log(JSON.stringify(input));
     return $.ajax(settings);
 }
+
+
 function onfail(jqXHR, status, err) { console.log(status + ": " + err) }
 
 function loadProductDetails(data) {
@@ -47,18 +50,40 @@ function loadProductDetails(data) {
     $('#product-details-container').append(product);
 
     //data will have supplier details - pass suppliers and prices
+    
     loadSuppliers(data.supplier);
 }
 
-function loadSuppliers(data) {
-    // TODO what if multiple categories..?
-    $('#prices-container')
-    .append(`
-        <div class="price-supplier-container">
-            <a>${supplier.name}</a>
-            <a>${supplier.price}</a>
-        </div>
-    `);
+
+
+function loadSuppliers(suppliers) {
+    
+    $('#prices-container').empty();
+   
+    if (Array.isArray(suppliers)) {
+     
+        suppliers.forEach(supplier => {
+            $('#prices-container').append(`
+                <div class="price-supplier-container" id="supplier-${supplier.supplier_id}">
+                    <a>${supplier.supplier_name}</a>
+                    <a>${supplier.contact_info || 'Contact not available'}</a>
+                    <a>$${supplier.price || 'Price not available'}</a>
+                </div>
+            `);
+        });
+    } else if (suppliers) {
+        
+        $('#prices-container').append(`
+            <div class="price-supplier-container" id="supplier-${suppliers.supplier_id}">
+                <a>${suppliers.supplier_name}</a>
+                <a>${suppliers.contact_info || 'Contact not available'}</a>
+                <a>$${suppliers.price || 'Price not available'}</a>
+            </div>
+        `);
+    } else {
+        console.error("No supplier data received");
+        $('#prices-container').append('<p>No supplier information available</p>');
+    }
 }
 
 function loadReviewDetails() {
@@ -78,6 +103,9 @@ function loadReviewDetails() {
         $('#review-rating').append(starRating);
     }
 }
+
+
+
 function starRatingClick(event) {
     let currentClick = event.data;
     $('#user-rating').text(currentClick);
@@ -108,9 +136,18 @@ function webload() {
         let review = $('textarea#review-content').val();
         let rating = $('user-rating').text();
         if (review != '') {
-            // ajaxRequest({
-            // TODO
-            // }).then(() => {  }, onfail);
+            ajaxRequest({
+                type: "Reviews",
+                apikey: "def456uvw",
+                operation: "Add",
+                rating: rating,
+                review: review,
+                username: "john_doe", //TODO change
+                supplier_name: "1" //TODO change
+                
+            }).then(() => {
+                $('make-review').hide;
+              }, onfail);
         }
     });
 
@@ -120,11 +157,13 @@ function webload() {
     let product_id_tmp = 1001; //for now itll be this.
     ajaxRequest({
         type: "GetAllProducts",
-        upc: product_id_tmp
+        upc: product_id
     }).then((resp) => {
         loadProductDetails(resp.data.products[0]);
         loadReviewDetails(resp.data.products[0]);
     }, onfail);
+
+    
 }
 
 $(document).ready(webload);
