@@ -116,7 +116,9 @@
 // }
 // Define your API configuration
 
-console.log("review.js loaded"); 
+const element = document.createElement('div');
+element.innerHTML = `<p>This is HTML in a JavaScript script.</p>`;
+document.body.appendChild(element);
 
 function ajaxRequest(input) {
     let username = "u24845061", password = "Carbon123";
