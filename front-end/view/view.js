@@ -1,13 +1,12 @@
 // Assume the product ID is in the URL as a query
+// Change the .get('productID') with whatever we decide to name the parameter
 const urlParams = new URLSearchParams(window.location.search);
 const product_id = urlParams.get('productID');
 
 function ajaxRequest(input) {
-    //IF we do this localhost then use this otherwise we remove auth (we also have to hide these details somehow)
-    //Rn ive just set it to my shit but change this obv when
-    let username = "u24772756", password = "@cce552UP1";
+    let username = "u24845061", password = "Carbon123";
     let settings = {
-        url: "https://wheatley.cs.up.ac.za/u24772756/HA/api.php",
+        url: "https://wheatley.cs.up.ac.za/u24845061/COS221APITesting/api.php",
         method: "POST",
         headers: {
             "Content-Type": "application/json",
@@ -112,6 +111,8 @@ function loadSuppliers(data) {
 
 function loadReviewDetails() {
     for (i = 5, j = 1 ; i > 0 ; i--, j++) {
+
+        // numeric-rating is where we will add the rating
         $('#overall-review').append(`
             <div class="star-rating" id="overall-${i}">
                 <a>${i}</a>
@@ -147,11 +148,13 @@ function webload() {
     $('button#clear').click(() => {
         $('textarea#review-content').val('');
     });
+    
     $('button#submit').click(() => {
         let review = $('textarea#review-content').val();
-        //todo add functionality
+        //TODO add functionality
         if (review != '') console.log(review);
     });
+
 
     //temp data just to prove ajax works
     // .then() we can set stuff there as in global data gets and stuff
