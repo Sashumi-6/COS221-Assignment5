@@ -14,15 +14,15 @@ $(document).ready(() => {
 function loadProducts(filters = {}) {
     const requestData = {
         type: "GetAllProducts",
-        apikey:"a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6",
         ...filters
     };
 
     ajaxRequest(requestData)
     .done((response) => {
-        if (response.status) {
-            renderProducts(response.message.products);
+        if (response.status && response.data && response.data.products) {
+            renderProducts(response.data.products);
         } else {
+            console.error("Failed to load products:", response);
             $('.container').html("<p>No products found.</p>");
         }
     })
@@ -63,8 +63,9 @@ function renderProducts(products) {
                 </div>
                 <div class="product-details">
                     <h2 class="product-title">${prod.product_name}</h2>
-                    <p class="product-price">R${prod.price}</p>
                     <p class="product-description">${prod.description || "No description provided."}</p>
+                    <p class="product-category">Category: ${prod.category?.category_name || "Uncategorized"}</p>
+                    <div class="userbuttons userbuttons-classic">
                     <div class="userbuttons userbuttons-classic">
                         <button class="compare">Compare</button>
                     </div>
@@ -88,7 +89,7 @@ function updateBrandDropdown(brands) {
 function loadCategories() {
     const requestData = {
         type: "GetCategories",
-        //apikey // Make sure this variable is valid and consistent
+       apikey:"a22e8ff82400fff"// Make sure this variable is valid and consistent
     };
 
     ajaxRequest(requestData)
@@ -134,6 +135,13 @@ function applyFilters(extra = {}) {
     const selectedBrand = $('#brand-select').val();
     const sortOption = $('#sort-select').val();
 
+    // If extra filters are passed (like category), fetch filtered products from API
+    if (Object.keys(extra).length > 0) {
+        loadProducts(extra);
+        return;
+    }
+
+
     let filtered = [...allProductsCache];
 
     if (searchTerm) {
@@ -166,4 +174,4 @@ function applyFilters(extra = {}) {
     renderProducts(filtered);
 }
 
-$(document).ready(webLoad);
+// $(document).ready(webLoad);
