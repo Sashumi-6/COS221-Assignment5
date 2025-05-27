@@ -1,3 +1,7 @@
+const urlParams = new URLSearchParams(window.location.search);
+const product_id = urlParams.get('upc');
+
+
 function loadReviewDetails() {
     for (i = 5, j = 1 ; i > 0 ; i--, j++) {
 
@@ -71,6 +75,9 @@ function loadDashboard() {
 
 document.addEventListener('DOMContentLoaded', function() {
     loadDashboard();
+    if(product_id != null){
+        
+    }
 });
 
 // Or if you're using modules and modern JS:
