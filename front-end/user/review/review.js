@@ -24,7 +24,7 @@ function loadReviewsForSpecificProduct() {
         type: "Reviews",
         apikey: "f986ee0fd3d677",
         operation: "Get",
-        upc: 1001
+        upc: product_id
     }).then((resp) => {
         console.log(resp);
         $(".scroll-wrapper").empty(); 
