@@ -241,7 +241,7 @@ class Database {
      * retrieves available categories (name, id [for now])
      */
     public function getCategories(){
-        $query = "SELECT category_id, category_name FROM categories";
+        $query = "SELECT * FROM categories";
         $stmt = $this->prepare($query);
         
         if($stmt->execute()){
@@ -253,6 +253,22 @@ class Database {
             throw new Exception("Couldn't retrieve data from database.");
         }
 
+    }
+
+    public function buildCategoryTree($categories, $parentId = null) {
+        $branch = [];
+        foreach ($categories as $category) {
+            if ($category['parent_category_id'] === $parentId) {
+                $children = $this->buildCategoryTree($categories, $category['category_id']);
+                if ($children) {
+                    $category['children'] = $children;
+                } else {
+                    $category['children'] = [];
+                }
+                $branch[] = $category;
+            }
+        }
+        return $branch;
     }
 
     public function getCategoryID($name){

@@ -425,11 +425,13 @@
                 }
             } else if ($input['operation'] === 'Get') {
                 try {
-                    $data = $dbConn->getCategories();
+                    $flat = $dbConn->getCategories();
+                    $data = $dbConn->buildCategoryTree($flat);
 
                     $GLOBALS['code'] = 200;
                     $status = true;
                     $message = $data;
+                    
                 } catch (Exception $e) {
                     $GLOBALS['code'] = 500;
                     $status = false;

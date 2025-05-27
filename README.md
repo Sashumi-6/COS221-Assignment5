@@ -14,6 +14,20 @@ Categories api endpoint:
     parent_category_name : name of this category's parent category
 }
 
+response from get  :
+{
+    category_id : int,
+    category_name : string,
+    parent_category_id : null/int,
+    children : [
+        {
+            category_id : int,
+            category_name : string,
+            parent_category_id : null/int,
+        }
+    ]
+}
+
 When using \Delete, specify the category id. Omit category_name.
 
 When using Add, specify name of category and it'll be added. Returned will be
