@@ -11,6 +11,9 @@ document.addEventListener('DOMContentLoaded', function(){
 
     });
 
+    goBackButton.addEventListener('click', function () {
+        window.history.back();
+    });
 });
 
 function validateForm(){
@@ -51,7 +54,8 @@ function submitForm(){
         username: document.getElementById('username-input').value.trim(),
         email: document.getElementById('email-input').value.trim(),
         password: document.getElementById('password-input').value,
-        user_type: document.getElementById('user-type').value
+        //TODO resolve uuser type setting
+        user_type: document.getElementById('user-selector').value
     };
     //TODO add api address
     fetch("https://", {
@@ -79,18 +83,46 @@ function submitForm(){
             //alert("Signup successful! Your API Key is: " + result.data.apikey);
             const userType = result.data.userType;
 
-            if (userType === 'Admin') {
-                window.location.href = '../admin/admin.html';
+                if (userType === 'Admin') {
+                    window.location.href = '../admin/admin.html';
+                } else {
+                    window.location.href = '../index.html';
+                }
             } else {
-                window.location.href = '../index.html';
+                document.getElementById('signup-error').textContent = response.data || 'Signup failed.';
             }
-        } else {
-            document.getElementById('signup-error').textContent = result.data || 'Signup failed.';
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        document.getElementById('signup-error').textContent = error.data || 'An error occurred while signing up.';
-    });
+        })
+        .fail(function (xhr) {
+            let errorMsg = 'An error occurred while signing up.';
 
+            if (xhr.responseText) {
+                try {
+                    const json = JSON.parse(xhr.responseText);
+                    if (json.message) {
+                        errorMsg = json.message;
+                    } else if (json.data) {
+                        errorMsg = json.data;
+                    }
+                } catch (e) {
+                    console.warn('Response was not valid JSON:', xhr.responseText);
+                    // Keep default errorMsg
+                }
+            }
+
+            document.getElementById('signup-error').textContent = errorMsg;
+        });
+
+}
+
+function ajaxRequest(input) {
+    const username = "u24845061", password = "Carbon123";
+    return $.ajax({
+        url: "https://wheatley.cs.up.ac.za/u24845061/COS221APITesting/api.php",
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": "Basic " + btoa(username + ":" + password)
+        },
+        data: JSON.stringify(input)
+    });
 }
