@@ -1,77 +1,64 @@
-function loadReviewDetails() {
-    for (i = 5, j = 1 ; i > 0 ; i--, j++) {
+const urlParams = new URLSearchParams(window.location.search);
+const product_id = urlParams.get('upc');
 
-        // numeric-rating is where we will add the rating
-        $('#overall-review').append(`
-            <div class="star-rating" id="overall-${i}">
-                <a>${i}</a>
-                <span class="fa fa-star checked"></span>
-                <a class="numeric-rating">${Math.floor(((Math.random() * 1000) + 1) % 100)}</a>
-            </div>
-        `);
 
-        let starRating = $(`<span id="${j}" class="fa fa-star"></span>`).click(j, starRatingClick);
-        if (j == 1) starRating.addClass('checked').addClass('active');
-        $('#review-rating').append(starRating);
-    }
-}
-
-function getUrlParameter(name) {
-    name = name.replace(/[\[\]]/g, '\\$&');
-    const regex = new RegExp('[?&]' + name + '(=([^&#]*)|&|#|$)');
-    const results = regex.exec(window.location.href);
-    if (!results) return null;
-    if (!results[2]) return '';
-    return decodeURIComponent(results[2].replace(/\+/g, ' '));
-}
-
-function loadStandardDashboard() {
-    // Your standard dashboard initialization code
-    console.log("Loading standard dashboard");
-    // Example: fetch default data, render default widgets, etc.
-}
-
-// Product-specific dashboard load function
-function loadProductDashboard(upc) {
-    console.log(`Loading product dashboard for UCP: ${upc}`);
-    // Example: fetch product-specific data, render product widgets, etc.
-    
-    // You might make an API call specific to this product
-    fetch(`/api/products/${upc}`)
-        .then(response => response.json())
-        .then(data => {
-            // Render your product-specific dashboard with this data
-            renderProductDashboard(data);
+function loadTopProducts() {
+  ajaxRequest({ type: "GetAllProducts" })
+    .done(response => {
+      if (response.status === "success" && response.data?.products) {
+        // Get products with at least one 5-star rating
+        const productsWithFiveStars = response.data.products.filter(product => {
+          return product.ratings && product.ratings.some(r => r.value === 5);
         });
+        
+        // Take first 5 (or all if less than 5)
+        const topProducts = productsWithFiveStars.slice(0, 5);
+        
+        if (topProducts.length > 0) {
+          renderProducts(topProducts);
+        } else {
+          $('.container').html("<p>No products with 5-star ratings found.</p>");
+        }
+      } else {
+        console.error("Failed to load products:", response);
+        $('.container').html("<p>No products found.</p>");
+      }
+    })
+    .fail(() => {
+      $('.container').html("<p>Failed to load products.</p>");
+    });
 }
 
-// Another variation if needed
-function loadSpecialDashboard(options) {
-    console.log("Loading special dashboard with options:", options);
-    // Different dashboard implementation
-}
-
-function loadDashboard() {
-    const upc = getUrlParameter('upc');
-    const dashboardType = getUrlParameter('dashboard');
+function renderProducts(products) {
+  const container = $('.products-container');
+  container.empty();
+  
+  if (products.length === 0) {
+    container.html('<p>No products found.</p>');
+    return;
+  }
+  
+  products.forEach(product => {
+    const fiveStarCount = product.ratings 
+      ? product.ratings.filter(r => r.value === 5).length
+      : 0;
     
-    if (upc) {
-        // If UCP parameter exists, load product-specific dashboard
-        loadProductDashboard(upc);
-    } 
-    else if (dashboardType === 'special') {
-        // If special dashboard parameter exists
-        loadSpecialDashboard({ /* options */ });
+    container.append(`
+      <div class="product-card">
+        <h3>${product.name}</h3>
+        <p>${fiveStarCount} five-star ratings</p>
+        <!-- other product details -->
+      </div>
+    `);
+  });
+}
+
+$(document).ready(() => {
+
+    if (product_id == null){
+        loadTopFiveBestProd();
     }
     else {
-        // Default dashboard
-        loadStandardDashboard();
+        loadReviewsForSpecificProduct();
     }
-}
-
-document.addEventListener('DOMContentLoaded', function() {
-    loadDashboard();
 });
-
-// Or if you're using modules and modern JS:
-window.addEventListener('load', loadDashboard);

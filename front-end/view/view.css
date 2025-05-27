@@ -83,6 +83,31 @@ img {
     background-color: #66615E;
     border-radius: 8px;
     color: #F2F0EF;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2); 
+    transform: translateY(0); 
+}
+
+.price-supplier-container:hover {
+    background-color: #7A756F; 
+    transform: translateY(-3px); 
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3); 
+    color: #FFFFFF; 
+    
+    
+    background-image: linear-gradient(
+        to bottom right,
+        #7A756F 0%,
+        #66615E 100%
+    );
+}
+
+
+.price-supplier-container:hover a:nth-child(2) {
+    color: orange; 
+    transform: scale(1.05); 
+    transition: color 0.2s ease, transform 0.2s ease;
 }
 
 #review-container {

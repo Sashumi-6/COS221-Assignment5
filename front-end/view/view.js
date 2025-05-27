@@ -54,9 +54,7 @@ function loadProductDetails(data) {
     loadSuppliers();
 }
 
-function getOfffers(){
-   
-}
+
 
 function loadSuppliers() {
     ajaxRequest({
@@ -74,7 +72,7 @@ function loadSuppliers() {
             
             resp.data.forEach(offer => {
                 $('#prices-container').append(`
-                    <div class="price-supplier-container" id="offer-${offer.offer_id}">
+                    <div class="price-supplier-container" id=${offer.retailer_name}>
                         <a>${offer.retailer_name}</a>
                         <a>R${offer.price.toFixed(2)}</a>
                     </div>
@@ -88,14 +86,26 @@ function loadSuppliers() {
 }
 
 function loadReviewDetails() {
-    for (i = 5, j = 1 ; i > 0 ; i--, j++) {
 
+    ajaxRequest({
+        type :"Reviews",
+        apikey:"f986ee0fd3d677",
+        operation:"Overall",
+        "upc": 1001
+    }).then((resp) => {
+    
+    for (i = 5, j = 1 ; i > 0 ; i--, j++) {
+        count = 0;
         // numeric-rating is where we will add the rating
+        resp.data.forEach(result => {
+            if(parseInt(result.rating) == i)
+                count++;
+        })
         $('#overall-review').append(`
             <div class="star-rating" id="overall-${i}">
                 <a>${i}</a>
                 <span class="fa fa-star checked"></span>
-                <a class="numeric-rating">${Math.floor(((Math.random() * 1000) + 1) % 100)}</a>
+                <a class="numeric-rating">${count}</a>
             </div>
         `);
 
@@ -103,6 +113,8 @@ function loadReviewDetails() {
         if (j == 1) starRating.addClass('checked').addClass('active');
         $('#review-rating').append(starRating);
     }
+
+    }, onfail)
 }
 
 
@@ -139,12 +151,12 @@ function webload() {
         if (review != '') {
             ajaxRequest({
                 type: "Reviews",
-                apikey: "def456uvw",
+                apikey: "f986ee0fd3d677",
                 operation: "Add",
                 rating: rating,
                 review: review,
                 username: "john_doe", //TODO change
-                supplier_name: "1" //TODO change
+                retailer_name: "Takealot" //TODO change
                 
             }).then(() => {
                 $('make-review').hide;
