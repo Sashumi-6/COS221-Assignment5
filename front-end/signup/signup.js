@@ -46,74 +46,45 @@ function validateForm(){
     return true;
 }
 
-function submitForm(){
-    const data = {
-        type: "Register",
-        name: document.getElementById('name-input').value.trim(),
-        surname: document.getElementById('surname-input').value.trim(),
-        username: document.getElementById('username-input').value.trim(),
-        email: document.getElementById('email-input').value.trim(),
-        password: document.getElementById('password-input').value,
-        //TODO resolve uuser type setting
-        user_type: document.getElementById('user-selector').value
-    };
-    //TODO add api address
-    fetch("https://", {
-        method: 'POST',
-        headers:{
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(data)
-    })
-    .then(async response=>{
-        const contentType = response.headers.get("content-type");
-        const isJson = contentType && contentType.includes("application/json");
-        
-        if (!response.ok) {
-            // Response status is NOT 2xx (e.g. 400, 409)
-            let errorData = isJson ? await response.json() : { data: "An unknown error occurred." };
-            throw new Error(errorData.data || 'Unknown server error');
+function submitForm() {
+  const requestData = {
+    type: "Register",
+    name: document.getElementById('name-input').value.trim(),
+    surname: document.getElementById('surname-input').value.trim(),
+    username: document.getElementById('username-input').value.trim(),
+    email: document.getElementById('email-input').value.trim(),
+    password: document.getElementById('password-input').value,
+    user_type: document.getElementById('user-selector').value
+  };
+
+  ajaxRequest(requestData)
+    .done(function(response) {
+      if (response.status === 'success') {
+        // Save API key and userType
+        sessionStorage.setItem('apikey', response.data.apikey);
+        sessionStorage.setItem('userType', response.data.userType);
+
+        // Redirect
+        if (response.data.userType === 'Admin') {
+          window.location.href = '../admin/admin.html';
+        } else {
+          window.location.href = '../index.html';
         }
-    
-        // Handle 2xx responses
-        return isJson ? response.json() : { status: "error", data: "Invalid JSON returned" };
+      } else {
+        document.getElementById('signup-error').textContent = response.data || 'Signup failed.';
+      }
     })
-    .then(result =>{
-      if (result.status === 'success') {
-            //alert("Signup successful! Your API Key is: " + result.data.apikey);
-            const userType = result.data.userType;
-            sessionStorage.setItem('apikey', response.data.apikey);
-            sessionStorage.setItem('userType', userType);
-                if (userType === 'Admin') {
-                    window.location.href = '../admin/admin.html';
-                } else {
-                    window.location.href = '../index.html';
-                }
-            } else {
-                document.getElementById('signup-error').textContent = response.data || 'Signup failed.';
-            }
-        })
-        .fail(function (xhr) {
-            let errorMsg = 'An error occurred while signing up.';
-
-            if (xhr.responseText) {
-                try {
-                    const json = JSON.parse(xhr.responseText);
-                    if (json.message) {
-                        errorMsg = json.message;
-                    } else if (json.data) {
-                        errorMsg = json.data;
-                    }
-                } catch (e) {
-                    console.warn('Response was not valid JSON:', xhr.responseText);
-                    // Keep default errorMsg
-                }
-            }
-
-            document.getElementById('signup-error').textContent = errorMsg;
-        });
-
+    .fail(function(xhr) {
+      let msg = 'An error occurred during signup.';
+      if (xhr.status === 401) {
+        msg = 'Unauthorized – check your credentials.';
+      } else if (xhr.responseJSON?.data) {
+        msg = xhr.responseJSON.data;
+      }
+      document.getElementById('signup-error').textContent = msg;
+    });
 }
+
 
 function ajaxRequest(input) {
     const username = "u24845061", password = "Carbon123";
