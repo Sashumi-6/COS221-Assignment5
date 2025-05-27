@@ -14,7 +14,6 @@
         How filtering (sorting) works:
         only 1 filter can be active at a time
 */
-let URL = "";
 
 function productsUpdate(data) {
     let del_btn = $(`<div class="buttons"><button>Delete</button></div>`);
@@ -29,6 +28,37 @@ function productsUpdate(data) {
         </div>
         `).append(del_btn);
     $('#products-container').append(main);
+
+    $(`#upc-${data.upc} .buttons button`).on("click", 
+        {upc : data.upc}, deleteProduct);
+}
+
+function deleteProduct(event){
+    let input = {
+        type : "DeleteProduct",
+        apikey : sessionStorage.getItem('apikey'),
+        upc : event.data.upc
+    }
+
+    ajaxRequest(input)
+    .done((response) => {
+        if(response.status){
+            $(`#upc-${data.upc}`).remove();
+            alert("Product deleted successfully !");
+        }
+        else{
+            alert(response.data || 'Failed to delete this Product');
+        }
+    })
+    .fail((xhr) =>{
+        if(xhr.status === 403){
+            let body = JSON.parse(xhr.responseText);
+            alert(body.data);
+        }
+        else{
+            alert("Couldn't delete Product");
+        }
+    })
 }
 
 function usersUpdate(data) {
@@ -45,12 +75,34 @@ function usersUpdate(data) {
     $('#users-container').append(main);
 
     $(`#userid-${data.id} .buttons button`).on("click", 
-        {username : data.username}, deleteUser);
+        {userId : data.id}, deleteUser);
 }
 
 function deleteUser(event){
-    fetch(URL, {
-
+    let input = {
+        type : "Users",
+        operation : "Delete",
+        apikey : sessionStorage.getItem('apikey'),
+        user_id : event.data.userId
+    }
+    ajaxRequest(input)
+    .done((response) => {
+        if(response.status){
+            $(`#userid-${event.data.userId}`).remove();
+            alert("User deleted successfully !");
+        }
+        else{
+            alert(response.data || 'Failed to delete this user');
+        }
+    })
+    .fail((xhr) =>{
+        if(xhr.status === 403){
+            let body = JSON.parse(xhr.responseText);
+            alert(body.data);
+        }
+        else{
+            alert("Couldn't delete user");
+        }
     })
 }
 
@@ -152,6 +204,19 @@ function sideContent_add_del(event) {
     }
 }
 
+function ajaxRequest(input) {
+    const username = "u24845061", password = "Carbon123";
+    return $.ajax({
+        url: "https://wheatley.cs.up.ac.za/u24845061/COS221APITesting/api.php",
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": "Basic " + btoa(username + ":" + password)
+        },
+        data: JSON.stringify(input)
+    });
+}
+
 // Tmp Data
 var categoryTmp = ["Category1", "Category2", "Category3", "Category4", "Category5", "Category6"]
 var StockistTmp = ["Stockist1", "Stockist2", "Stockist3", "Stockist4", "Stockist5", "Stockist6"]
@@ -222,12 +287,70 @@ let users = [
     }
 ]
 
+function loadCategories() {
+    const requestData = {
+        type: "Categories",
+        operation : "Get",
+        apikey : sessionStorage.getItem('apikey')
+    };
+
+    ajaxRequest(requestData)
+    .done((response) => {
+        if (response.status && Array.isArray(response.data)) {
+            //const categoryTree = buildCategoryTree(response.data);
+            renderCategoryTree(response.data);
+        } else {
+            console.error("Failed to load categories: Invalid response format", response);
+        }
+    })
+    .fail((jqXHR, textStatus, errorThrown) => {
+        console.log(jqXHR.responseText);
+        console.error("AJAX error while loading categories:", textStatus, errorThrown);
+    });
+}//end loadCategories
+
+function renderCategoryTree(tree, parent = $("#categories-container"), level = 0) {
+    tree.forEach(cat => {
+        const entry = $(`<button class="category-button" style="margin-left: ${level * 15}px;">${cat.category_name}</button>`);
+        
+        const childrenContainer = $(`<div class="child-categories" style="display: none;"></div>`);
+
+        entry.on('click', function () {
+            // Toggle visibility of children
+            childrenContainer.toggle();
+
+            // Filter products for this category
+            applyFilters({ category_id: cat.category_id, include_subcategories: true });
+        });
+
+        parent.append(entry);
+        parent.append(childrenContainer);
+
+        if (cat.children.length > 0) {
+            renderCategoryTree(cat.children, childrenContainer, level + 1);
+        }
+    });
+}//end renderCategories
+
+function loadStockists(){
+    let input = {
+        type : "GetAllRetailers",
+        apikey : sessionStorage.getItem('apikey')
+    };
+    ajaxRequest(input)
+    .done()
+    .fail((jqXHR, textStatus, errorThrown) => {
+        console.log(jqXHR.responseText);
+        console.error("AJAX error while loading categories:", textStatus, errorThrown);
+    });
+}
+
 // Initiliser varibles
 let CategoryInit = 0;
 let StockistInit = 0;
 function webLoad() {
     //Load side content
-    categoryTmp.forEach((cat) => { sideContentUpdate('categories', cat) });
+    loadCategories();
     StockistTmp.forEach((stock) => { sideContentUpdate('stockist', stock) });
 
     products.forEach((prod) => { productsUpdate(prod) });
