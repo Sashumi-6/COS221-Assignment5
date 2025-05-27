@@ -14,6 +14,10 @@
         How filtering (sorting) works:
         only 1 filter can be active at a time
 */
+let productsCache = [];
+let usersCache = [];
+let fetchedProducts = [];
+let fetchedUsers    = [];
 
 function productsUpdate(data) {
     // Extract category information
@@ -264,23 +268,47 @@ let users = [
 // Initiliser varibles
 let CategoryInit = 0;
 let StockistInit = 0;
+function initBrandDropdown(products) {
+  const brandSet = new Set(products.map(p => p.brand).filter(b => b));
+  const $brand = $('#brand-select').empty().append(`<option value="">All Brands</option>`);
+  Array.from(brandSet).sort().forEach(b => $brand.append(`<option value="${b}">${b}</option>`));
+}
+
+function initCategoryDropdown(products) {
+  // build unique map of category_id → category_name
+  const catMap = new Map();
+  products.forEach(p => {
+    if (p.category?.category_id) {
+      catMap.set(p.category.category_id, p.category.category_name);
+    }
+  });
+
+  const $cat = $('#category-select').empty().append(`<option value="">All Categories</option>`);
+  // sort by name
+  Array.from(catMap.entries())
+       .sort((a, b) => a[1].localeCompare(b[1]))
+       .forEach(([id, name]) => {
+         $cat.append(`<option value="${id}">${name}</option>`);
+       });
+}
 
 function webLoad() {
     //Load side content
     categoryTmp.forEach((cat) => { sideContentUpdate('categories', cat) });
     StockistTmp.forEach((stock) => { sideContentUpdate('stockist', stock) });
 
-    ajaxRequest({
-    type: "GetAllProducts"
-    // apikey: userApiKey
-}).then((response) => {
+    ajaxRequest({type: "GetAllProducts"}).then((response) => {
     console.log("API Response:", response); // For debugging
     
-    if (response.status && response.data && response.data.products) {
+    if (response.status === 'success' && response.data?.products) {
         // Access the products array correctly
-        response.data.products.forEach((product) => {
-            productsUpdate(product);
-        });
+        // cache & render
+        fetchedProducts = response.data.products.slice();
+        fetchedProducts.forEach(productsUpdate);
+
+        // Initialize brand & category dropdowns
+        initBrandDropdown(fetchedProducts);
+        initCategoryDropdown(fetchedProducts);
     } else {
         console.error("Failed to fetch products:", response.data);
         // Display error message to user
@@ -304,9 +332,9 @@ ajaxRequest({
     
     if (response.status && response.data) {
         // The data is directly the array of users (no nested 'users' property)
-        response.data.forEach((user) => {
-            usersUpdate(user);
-        });
+        // cache & render
+        fetchedUsers = response.data.slice();
+        fetchedUsers.forEach(usersUpdate);
     } else {
         console.error("Failed to fetch users:", response.data);
         $('#users-container').append('<div class="error">No users found or error loading users</div>');
@@ -317,6 +345,51 @@ ajaxRequest({
 });
     // products.forEach((prod) => { productsUpdate(prod) });
     // users.forEach((user) => { usersUpdate(user) });
+// wire up our new filters
+$('#bar').off('input').on('input', applyAdminFilters);
+  $('#brand-select, #category-select, #sort-select')
+    .off('change')
+    .on('change', applyAdminFilters);
+
+function applyAdminFilters() {
+  const term  = $('#bar'       ).val().trim().toLowerCase();
+  const brand = $('#brand-select').val();
+  const catId  = $('#category-select').val();
+  const sort  = $('#sort-select' ).val();
+
+  // --- PRODUCTS ---
+  let prods = fetchedProducts.slice();
+  if (catId) {
+    const id = parseInt(catId,10);
+    prods = prods.filter(p => p.category.category_id === id);
+ }
+  if (brand) prods = prods.filter(p => p.brand === brand);
+  if (term)  prods = prods.filter(p =>
+    p.product_name.toLowerCase().includes(term) ||
+    (p.description||'').toLowerCase().includes(term)
+  );
+  if (sort === 'az') prods.sort((a,b)=> a.product_name.localeCompare(b.product_name));
+  if (sort === 'za') prods.sort((a,b)=> b.product_name.localeCompare(a.product_name));
+
+  // clear & re-render products
+  $('#products-container .product').remove();
+  prods.forEach(productsUpdate);
+
+  // --- USERS ---
+  let us = fetchedUsers.slice();
+  if (term) us = us.filter(u =>
+    u.username.toLowerCase().includes(term) ||
+    (u.full_name||'').toLowerCase().includes(term) ||
+    u.email.toLowerCase().includes(term)
+  );
+  if (sort === 'az') us.sort((a,b)=> a.username.localeCompare(b.username));
+  if (sort === 'za') us.sort((a,b)=> b.username.localeCompare(a.username));
+
+  // clear & re-render users
+  $('#users-container .user').remove();
+  us.forEach(usersUpdate);
 }
+
+}//end webload
 
 $(document).ready(webLoad);
