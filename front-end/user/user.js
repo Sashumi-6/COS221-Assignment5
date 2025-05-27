@@ -1,8 +1,18 @@
 // user.js
 const apiUrl = "https://wheatley.cs.up.ac.za/u24845061/COS221APITesting/api.php";
-
+const apikey = sessionStorage.getItem('apikey');
 let originalProducts = [];
 let categoryTree = [];
+
+(function checkAuth() {
+  if (!apiKey) {
+    alert('You must be signed in to view this page.');
+    // Redirect to login page
+    window.location.href = 'login.html';
+    // Stop further script execution
+    throw new Error('Not authenticated');
+  }
+})();
 
 $(document).ready(() => {
   loadCategories();
@@ -54,7 +64,7 @@ function initBrandDropdown(products) {
 }
 
 function loadCategories() {
-  ajaxRequest({ type: "Categories", operation: "Get", apikey: "22e8ff82400fff" })
+  ajaxRequest({ type: "Categories", operation: "Get", apikey: apikey })
     .done(response => {
       if (response.status === "success" && Array.isArray(response.data)) {
         categoryTree = response.data;
