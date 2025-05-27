@@ -82,7 +82,8 @@ function submitForm(){
       if (result.status === 'success') {
             //alert("Signup successful! Your API Key is: " + result.data.apikey);
             const userType = result.data.userType;
-
+            sessionStorage.setItem('apikey', response.data.apikey);
+            sessionStorage.setItem('userType', userType);
                 if (userType === 'Admin') {
                     window.location.href = '../admin/admin.html';
                 } else {
