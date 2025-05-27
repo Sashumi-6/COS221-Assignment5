@@ -58,7 +58,7 @@ function deleteProduct(event){
     ajaxRequest(input)
     .done((response) => {
         if(response.status){
-            $(`#upc-${data.upc}`).remove();
+            $(`#upc-${event.data.upc}`).remove();
             alert("Product deleted successfully !");
         }
         else{
@@ -112,8 +112,8 @@ function usersUpdate(data) {
     
     $('#users-container').append(main);
 
-    $(`#userid-${data.id} .buttons button`).on("click", 
-        {userId : data.id}, deleteUser);
+    $(`#userid-${data.user_id} .buttons button`).on("click", 
+        {userId : data.user_id}, deleteUser);
 }
 
 function deleteUser(event){
@@ -574,97 +574,97 @@ function webLoad() {
     loadStockists();
 
     ajaxRequest({type: "GetAllProducts"}).then((response) => {
-    console.log("API Response:", response); // For debugging
-    
-    if (response.status === 'success' && response.data?.products) {
-        // Access the products array correctly
-        // cache & render
-        fetchedProducts = response.data.products.slice();
-        fetchedProducts.forEach(productsUpdate);
+        console.log("API Response:", response); // For debugging
+        
+        if (response.status === 'success' && response.data?.products) {
+            // Access the products array correctly
+            // cache & render
+            fetchedProducts = response.data.products.slice();
+            fetchedProducts.forEach(productsUpdate);
 
-        // Initialize brand & category dropdowns
-        initBrandDropdown(fetchedProducts);
-        initCategoryDropdown(fetchedProducts);
-    } else {
-        console.error("Failed to fetch products:", response.data);
+            // Initialize brand & category dropdowns
+            initBrandDropdown(fetchedProducts);
+            initCategoryDropdown(fetchedProducts);
+        } else {
+            console.error("Failed to fetch products:", response.data);
+            // Display error message to user
+            $('#products-container').append('<div class="error">No products found or error loading products</div>');
+        }
+    }).catch((error) => {
+        console.error("Error fetching products:", error);
         // Display error message to user
-        $('#products-container').append('<div class="error">No products found or error loading products</div>');
-    }
-}).catch((error) => {
-    console.error("Error fetching products:", error);
-    // Display error message to user
-    $('#products-container').append('<div class="error">Error connecting to server</div>');
-});
+        $('#products-container').append('<div class="error">Error connecting to server</div>');
+    });
 
     // "ba5b8ea60cf673"
 
-ajaxRequest({
-    type: "Users",
-    apikey: sessionStorage.getItem('apikey'),
-    operation: "Get"
-    
-}).then((response) => {
-    console.log("API Response:", response); // For debugging
-    
-    if (response.status && response.data) {
-        // The data is directly the array of users (no nested 'users' property)
-        // cache & render
-        fetchedUsers = response.data.slice();
-        fetchedUsers.forEach(usersUpdate);
-    } else {
-        console.error("Failed to fetch users:", response.data);
-        $('#users-container').append('<div class="error">No users found or error loading users</div>');
+    ajaxRequest({
+        type: "Users",
+        apikey: sessionStorage.getItem('apikey'),
+        operation: "Get"
+        
+    }).then((response) => {
+        console.log("API Response:", response); // For debugging
+        
+        if (response.status && response.data) {
+            // The data is directly the array of users (no nested 'users' property)
+            // cache & render
+            fetchedUsers = response.data.slice();
+            fetchedUsers.forEach(usersUpdate);
+        } else {
+            console.error("Failed to fetch users:", response.data);
+            $('#users-container').append('<div class="error">No users found or error loading users</div>');
+        }
+    }).catch((error) => {
+        console.error("Error fetching users:", error);
+        $('#users-container').append('<div class="error">Error connecting to server</div>');
+    });
+        // products.forEach((prod) => { productsUpdate(prod) });
+        // users.forEach((user) => { usersUpdate(user) });
+    // wire up our new filters
+    $('#bar').off('input').on('input', applyAdminFilters);
+    $('#brand-select, #category-select, #sort-select')
+        .off('change')
+        .on('change', applyAdminFilters);
+
+    function applyAdminFilters() {
+        const term  = $('#bar'       ).val().trim().toLowerCase();
+        const brand = $('#brand-select').val();
+        const catId  = $('#category-select').val();
+        const sort  = $('#sort-select' ).val();
+
+        // --- PRODUCTS ---
+        let prods = fetchedProducts.slice();
+        if (catId) {
+            const id = parseInt(catId,10);
+            prods = prods.filter(p => p.category.category_id === id);
+        }
+        if (brand) prods = prods.filter(p => p.brand === brand);
+        if (term)  prods = prods.filter(p =>
+            p.product_name.toLowerCase().includes(term) ||
+            (p.description||'').toLowerCase().includes(term)
+        );
+        if (sort === 'az') prods.sort((a,b)=> a.product_name.localeCompare(b.product_name));
+        if (sort === 'za') prods.sort((a,b)=> b.product_name.localeCompare(a.product_name));
+
+        // clear & re-render products
+        $('#products-container .product').remove();
+        prods.forEach(productsUpdate);
+
+        // --- USERS ---
+        let us = fetchedUsers.slice();
+        if (term) us = us.filter(u =>
+            u.username.toLowerCase().includes(term) ||
+            (u.full_name||'').toLowerCase().includes(term) ||
+            u.email.toLowerCase().includes(term)
+        );
+        if (sort === 'az') us.sort((a,b)=> a.username.localeCompare(b.username));
+        if (sort === 'za') us.sort((a,b)=> b.username.localeCompare(a.username));
+
+        // clear & re-render users
+        $('#users-container .user').remove();
+        us.forEach(usersUpdate);
     }
-}).catch((error) => {
-    console.error("Error fetching users:", error);
-    $('#users-container').append('<div class="error">Error connecting to server</div>');
-});
-    // products.forEach((prod) => { productsUpdate(prod) });
-    // users.forEach((user) => { usersUpdate(user) });
-// wire up our new filters
-$('#bar').off('input').on('input', applyAdminFilters);
-  $('#brand-select, #category-select, #sort-select')
-    .off('change')
-    .on('change', applyAdminFilters);
-
-function applyAdminFilters() {
-  const term  = $('#bar'       ).val().trim().toLowerCase();
-  const brand = $('#brand-select').val();
-  const catId  = $('#category-select').val();
-  const sort  = $('#sort-select' ).val();
-
-  // --- PRODUCTS ---
-  let prods = fetchedProducts.slice();
-  if (catId) {
-    const id = parseInt(catId,10);
-    prods = prods.filter(p => p.category.category_id === id);
- }
-  if (brand) prods = prods.filter(p => p.brand === brand);
-  if (term)  prods = prods.filter(p =>
-    p.product_name.toLowerCase().includes(term) ||
-    (p.description||'').toLowerCase().includes(term)
-  );
-  if (sort === 'az') prods.sort((a,b)=> a.product_name.localeCompare(b.product_name));
-  if (sort === 'za') prods.sort((a,b)=> b.product_name.localeCompare(a.product_name));
-
-  // clear & re-render products
-  $('#products-container .product').remove();
-  prods.forEach(productsUpdate);
-
-  // --- USERS ---
-  let us = fetchedUsers.slice();
-  if (term) us = us.filter(u =>
-    u.username.toLowerCase().includes(term) ||
-    (u.full_name||'').toLowerCase().includes(term) ||
-    u.email.toLowerCase().includes(term)
-  );
-  if (sort === 'az') us.sort((a,b)=> a.username.localeCompare(b.username));
-  if (sort === 'za') us.sort((a,b)=> b.username.localeCompare(a.username));
-
-  // clear & re-render users
-  $('#users-container .user').remove();
-  us.forEach(usersUpdate);
-}
 
 }//end webload
 
