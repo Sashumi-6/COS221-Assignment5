@@ -14,6 +14,8 @@
         How filtering (sorting) works:
         only 1 filter can be active at a time
 */
+let URL = "";
+
 function productsUpdate(data) {
     let del_btn = $(`<div class="buttons"><button>Delete</button></div>`);
     let main = $(`
@@ -41,6 +43,15 @@ function usersUpdate(data) {
         </div>
         `).append(del_btn);
     $('#users-container').append(main);
+
+    $(`#userid-${data.id} .buttons button`).on("click", 
+        {username : data.username}, deleteUser);
+}
+
+function deleteUser(event){
+    fetch(URL, {
+
+    })
 }
 
 function sideContentUpdate(selector, data) {
