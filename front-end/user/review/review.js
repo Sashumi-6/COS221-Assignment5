@@ -1,84 +1,124 @@
 const urlParams = new URLSearchParams(window.location.search);
 const product_id = urlParams.get('upc');
 
-
-function loadReviewDetails() {
-    for (i = 5, j = 1 ; i > 0 ; i--, j++) {
-
-        // numeric-rating is where we will add the rating
-        $('#overall-review').append(`
-            <div class="star-rating" id="overall-${i}">
-                <a>${i}</a>
-                <span class="fa fa-star checked"></span>
-                <a class="numeric-rating">${Math.floor(((Math.random() * 1000) + 1) % 100)}</a>
-            </div>
-        `);
-
-        let starRating = $(`<span id="${j}" class="fa fa-star"></span>`).click(j, starRatingClick);
-        if (j == 1) starRating.addClass('checked').addClass('active');
-        $('#review-rating').append(starRating);
-    }
+function ajaxRequest(input) {
+    let username = "u24845061", password = "Carbon123";
+    let settings = {
+        url: "https://wheatley.cs.up.ac.za/u24845061/COS221APITesting/api.php",
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": "Basic " + btoa(username + ":" + password)
+        },
+        data: JSON.stringify(input),
+        
+    };
+    console.log(JSON.stringify(input));
+    return $.ajax(settings);
 }
 
-function getUrlParameter(name) {
-    name = name.replace(/[\[\]]/g, '\\$&');
-    const regex = new RegExp('[?&]' + name + '(=([^&#]*)|&|#|$)');
-    const results = regex.exec(window.location.href);
-    if (!results) return null;
-    if (!results[2]) return '';
-    return decodeURIComponent(results[2].replace(/\+/g, ' '));
-}
+function onfail(jqXHR, status, err) { console.log(status + ": " + err) }
 
-function loadStandardDashboard() {
-    // Your standard dashboard initialization code
-    console.log("Loading standard dashboard");
-    // Example: fetch default data, render default widgets, etc.
-}
-
-// Product-specific dashboard load function
-function loadProductDashboard(upc) {
-    console.log(`Loading product dashboard for UCP: ${upc}`);
-    // Example: fetch product-specific data, render product widgets, etc.
-    
-    // You might make an API call specific to this product
-    fetch(`/api/products/${upc}`)
-        .then(response => response.json())
-        .then(data => {
-            // Render your product-specific dashboard with this data
-            renderProductDashboard(data);
+function loadReviewsForSpecificProduct() {
+    ajaxRequest({
+        type: "Reviews",
+        apikey: "f986ee0fd3d677",
+        operation: "Get",
+        upc: 1001
+    }).then((resp) => {
+        console.log(resp);
+        $(".scroll-wrapper").empty(); 
+        
+        resp.data.forEach(rev => {
+            let stars = "";
+           
+            for (let i = 0; i < parseInt(rev.rating); i++) {
+                stars += "⭐";
+            }
+           
+            for (let j = 0; j < 5 - parseInt(rev.rating); j++) {
+                stars += "☆";
+            }
+         
+            const review = $(`
+                <div class="review-card">
+                    <div class="review-header">
+                        <span class="reviewer-name">${rev.username}</span>
+                        <div class="retailer-info">
+                            <span class="retailer-name">${rev.retailer_name}</span>
+                            <span class="star-rating">${stars}</span>
+                        </div>
+                    </div>
+                    <div class="review-content">
+                        ${rev.review}
+                    </div>
+                </div>
+            `);
+            
+            $(".scroll-wrapper").append(review);
         });
+    }, onfail);
 }
 
-// Another variation if needed
-function loadSpecialDashboard(options) {
-    console.log("Loading special dashboard with options:", options);
-    // Different dashboard implementation
+function loadTopProducts() {
+  ajaxRequest({ type: "GetAllProducts" })
+    .done(response => {
+      if (response.status === "success" && response.data?.products) {
+        // Get products with at least one 5-star rating
+        const productsWithFiveStars = response.data.products.filter(product => {
+          return product.ratings && product.ratings.some(r => r.value === 5);
+        });
+        
+        // Take first 5 (or all if less than 5)
+        const topProducts = productsWithFiveStars.slice(0, 5);
+        
+        if (topProducts.length > 0) {
+          renderProducts(topProducts);
+        } else {
+          $('.container').html("<p>No products with 5-star ratings found.</p>");
+        }
+      } else {
+        console.error("Failed to load products:", response);
+        $('.container').html("<p>No products found.</p>");
+      }
+    })
+    .fail(() => {
+      $('.container').html("<p>Failed to load products.</p>");
+    });
 }
 
-function loadDashboard() {
-    const upc = getUrlParameter('upc');
-    const dashboardType = getUrlParameter('dashboard');
+function renderProducts(products) {
+  const container = $('.products-container');
+  container.empty();
+  
+  if (products.length === 0) {
+    container.html('<p>No products found.</p>');
+    return;
+  }
+  
+  products.forEach(product => {
+    const fiveStarCount = product.ratings 
+      ? product.ratings.filter(r => r.value === 5).length
+      : 0;
     
-    if (upc) {
-        // If UCP parameter exists, load product-specific dashboard
-        loadProductDashboard(upc);
-    } 
-    else if (dashboardType === 'special') {
-        // If special dashboard parameter exists
-        loadSpecialDashboard({ /* options */ });
+    container.append(`
+      <div class="product-card">
+        <h3>${product.name}</h3>
+        <p>${fiveStarCount} five-star ratings</p>
+        <!-- other product details -->
+      </div>
+    `);
+  });
+}
+
+$(document).ready(() => {
+
+    if (product_id == null){
+        loadTopFiveBestProd();
     }
     else {
-        // Default dashboard
-        loadStandardDashboard();
-    }
-}
-
-document.addEventListener('DOMContentLoaded', function() {
-    loadDashboard();
-    if(product_id != null){
+        console.log("hello");
+        loadReviewsForSpecificProduct();
         
     }
 });
-
-// Or if you're using modules and modern JS:
-window.addEventListener('load', loadDashboard);
