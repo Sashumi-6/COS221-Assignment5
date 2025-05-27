@@ -1,31 +1,135 @@
-/* TODO
-    - Add button functionality
-    - How to edit users/products
-    - Maybe change instead of using ID's maybe attributes for easier searching...
-    - Search (top right in the webpage)
-        How searching works:
-        User types something in search bar,
-        look for a user/product ie. search will search in both products & users
-        if nothin found, display "nothing found"
+/* TODO items and comments remain the same */
 
-    filters: (top left in webpage)
-        okay so it says 'filters' but its more sorting than it is filtering.
-        if theres time maybe change that semantic but,
-        How filtering (sorting) works:
-        only 1 filter can be active at a time
-*/
+// Unified search function
+$(document).ready(function() {
+    console.log('Document ready');
+    
+    // Search button click handler
+    $('#search-button').click(function() {
+        console.log('Search button clicked');
+        const searchTerm = $('#search-bar').val().trim();
+        console.log('Search term:', searchTerm);
+        if (searchTerm) {
+            performSearch(searchTerm);
+        } else {
+            performSearch('');
+        }
+    });
+
+    // Enter key press handler
+    $('#search-bar').keypress(function(e) {
+        if (e.which === 13) {
+            console.log('Enter key pressed');
+            const searchTerm = $(this).val().trim();
+            console.log('Search term:', searchTerm);
+            if (searchTerm) {
+                performSearch(searchTerm);
+            } else {
+                performSearch('');
+            }
+        }
+    });
+
+    // Initial load
+    performSearch('');
+});
+
+function performSearch(searchTerm) {
+    console.log('Starting search with term:', searchTerm);
+    
+    $('#products-container').addClass('loading');
+    $('#users-container').addClass('loading');
+    
+    $('#products-container .product').not('#heading').remove();
+    $('#users-container .user').remove();
+    
+    const productRequest = ajaxRequest({
+        type: "GetAllProducts",
+        apikey: sessionStorage.getItem('apikey'),
+        product_name: searchTerm
+    });
+
+    const userRequest = ajaxRequest({
+        type: "Users",
+        operation: "Get",
+        apikey: sessionStorage.getItem('apikey'),
+        search: searchTerm
+    });
+
+    Promise.all([productRequest, userRequest])
+        .then(([productsResponse, usersResponse]) => {
+            const productsFragment = document.createDocumentFragment();
+            
+            if (productsResponse.status) {
+                const products = Array.isArray(productsResponse.data) 
+                    ? productsResponse.data 
+                    : (productsResponse.data.products || []);
+                
+                products.forEach(product => {
+                    const categoryDisplay = product.category ? 
+                        `${product.category.category_name} (${product.category.parent_category})` : 
+                        'No category';
+                    
+                    const supplierDisplay = product.supplier ? 
+                        product.supplier.supplier_name : 
+                        'No supplier';
+                    
+                    const delBtn = $(`<button class="delete-btn">Delete</button>`);
+                    const productDiv = $(`
+                        <div class="product" id="upc-${product.upc}">
+                            <a>${product.upc}</a>
+                            <a>${product.product_name}</a>
+                            <a>${product.description}</a>
+                            <a>${categoryDisplay}</a>
+                            <a>${product.brand}</a>
+                            <a>${supplierDisplay}</a>
+                        </div>
+                    `).append(delBtn);
+                    
+                    productsFragment.appendChild(productDiv[0]);
+                });
+                
+                $('#products-container #heading').after(productsFragment);
+            }
+            
+            if (usersResponse.status && usersResponse.data) {
+                usersResponse.data.forEach(user => {
+                    const fullName = user.full_name || 'Not provided';
+                    const delBtn = $(`<button class="delete-btn">Delete</button>`);
+                    const userDiv = $(`
+                        <div class="user" id="userid-${user.user_id}">
+                            <a>${user.user_id}</a>
+                            <a>${user.username}</a>
+                            <a>${fullName}</a>
+                            <a>${user.email}</a>
+                            <a>${user.user_type}</a>
+                        </div>
+                    `).append(delBtn);
+                    
+                    $('#users-container').append(userDiv);
+                });
+            }
+        })
+        .catch(error => {
+            console.error('Search error:', error);
+            $('#products-container').append('<div class="error">Search failed</div>');
+        })
+        .finally(() => {
+            $('#products-container').removeClass('loading');
+            $('#users-container').removeClass('loading');
+        });
+}
+
 let productsCache = [];
 let usersCache = [];
 let fetchedProducts = [];
-let fetchedUsers    = [];
+let fetchedUsers = [];
 
 function productsUpdate(data) {
-    // Extract category information
     const categoryDisplay = data.category ? 
         `${data.category.category_name} (${data.category.parent_category})` : 
         'No category';
     
-    // Extract supplier information
     const supplierDisplay = data.supplier ? 
         data.supplier.supplier_name : 
         'No supplier';
@@ -43,60 +147,9 @@ function productsUpdate(data) {
     `).append(del_btn);
     
     $('#products-container').append(main);
-
-    $(`#upc-${data.upc} .buttons button`).on("click", 
-        {upc : data.upc}, deleteProduct);
 }
-
-function deleteProduct(event){
-    let input = {
-        type : "DeleteProduct",
-        apikey : sessionStorage.getItem('apikey'),
-        upc : event.data.upc
-    }
-
-    ajaxRequest(input)
-    .done((response) => {
-        if(response.status){
-            $(`#upc-${event.data.upc}`).remove();
-            alert("Product deleted successfully !");
-        }
-        else{
-            alert(response.data || 'Failed to delete this Product');
-        }
-    })
-    .fail((xhr) =>{
-        if(xhr.status === 403){
-            let body = JSON.parse(xhr.responseText);
-            alert(body.data);
-        }
-        else{
-            alert("Couldn't delete Product");
-        }
-    })
-}
-
-// 
-// 
-                // "upc": 1001,
-                // "product_name": "XPhone 12-2",
-                // "description": "Latest smartphone with advanced camera features and more survival stuff",
-                // "dimensions": "6.0 x 2.8 x 0.35 inches",
-                // "img_url": "phone1.jpg",
-                // "brand": "TechMaster",
-                // "supplier": {
-                //     "supplier_id": 1,
-                //     "supplier_name": "TechGadgets International",
-                //     "contact_info": "support@techgadgets-new.com"
-                // },
-                // "category": {
-                //     "category_id": 20,
-                //     "category_name": "Feature Phones",
-                //     "parent_category": "Phones"
-                // }
 
 function usersUpdate(data) {
-    // Handle null full_name case
     const fullName = data.full_name || 'Not provided';
     
     let del_btn = $(`<div class="buttons"><button>Delete</button></div>`);
@@ -147,7 +200,6 @@ function deleteUser(event){
 function sideContentUpdate(selector, data) {
     let appendableComponent = $("#" + selector + "-container" + " #list-items");
     if ((selector == "categories" && CategoryInit == 0) || (selector == "stockist" && StockistInit == 0)) {
-        //if we havent loaded the page
         let addbtn = $(`<button id="add-${selector}-btn">Add</button>`)
             .click({id: "add-" + selector, type: selector, command: "add"}, sideContent_add_del);
         
@@ -163,11 +215,6 @@ function sideContentUpdate(selector, data) {
         if (selector == "stockist") StockistInit = 1;
     }
     
-    // Each Category name is unique => using it as the unique identifier for components
-
-    //template
-
-    //Create the buttons dawg
     let edit = $(`<button id="edit-btn">Edit</button>`)
         .click({id: data, type: selector}, editSideContent);
     let del = $(`<button id="delete-btn">Delete</button>`)
@@ -186,8 +233,6 @@ function sideContentUpdate(selector, data) {
     appendableComponent.append(main);
 }
 
-// TODO
-//  Need to make it that everywhere that Category "X" is refrenced (Such as in the products) is updated
 function editSideContent(event) {
     let id = event.data.id;
     let type = event.data.type;
@@ -284,9 +329,7 @@ function sideContent_add_del(event) {
         let item = items.find('#' + id);
 
         if ($('.item#' + addInputValue).length == 0) {
-        
-            // IMPLEMENT API SHIT HERE !!!
-            if(type == "categories"){
+                    if(type == "categories"){
                 let input = {
                     type : capitalizeFirstLetter(type),
                     operation : "Add",
@@ -393,9 +436,8 @@ function sideContent_add_del(event) {
     }
 }
 
-// Tmp Data
-var categoryTmp = ["Category1", "Category2", "Category3", "Category4", "Category5", "Category6"]
-var StockistTmp = ["Stockist1", "Stockist2", "Stockist3", "Stockist4", "Stockist5", "Stockist6"]
+var categoryTmp = ["Category1", "Category2", "Category3", "Category4", "Category5", "Category6"];
+var StockistTmp = ["Stockist1", "Stockist2", "Stockist3", "Stockist4", "Stockist5", "Stockist6"];
 
 function ajaxRequest(input) {
     let username = "u24845061", password = "Carbon123";
@@ -545,27 +587,25 @@ function loadStockists(){
 let CategoryInit = 0;
 let StockistInit = 0;
 function initBrandDropdown(products) {
-  const brandSet = new Set(products.map(p => p.brand).filter(b => b));
-  const $brand = $('#brand-select').empty().append(`<option value="">All Brands</option>`);
-  Array.from(brandSet).sort().forEach(b => $brand.append(`<option value="${b}">${b}</option>`));
+    const brandSet = new Set(products.map(p => p.brand).filter(b => b));
+    const $brand = $('#brand-select').empty().append(`<option value="">All Brands</option>`);
+    Array.from(brandSet).sort().forEach(b => $brand.append(`<option value="${b}">${b}</option>`));
 }
 
 function initCategoryDropdown(products) {
-  // build unique map of category_id → category_name
-  const catMap = new Map();
-  products.forEach(p => {
-    if (p.category?.category_id) {
-      catMap.set(p.category.category_id, p.category.category_name);
-    }
-  });
+    const catMap = new Map();
+    products.forEach(p => {
+        if (p.category?.category_id) {
+            catMap.set(p.category.category_id, p.category.category_name);
+        }
+    });
 
-  const $cat = $('#category-select').empty().append(`<option value="">All Categories</option>`);
-  // sort by name
-  Array.from(catMap.entries())
-       .sort((a, b) => a[1].localeCompare(b[1]))
-       .forEach(([id, name]) => {
-         $cat.append(`<option value="${id}">${name}</option>`);
-       });
+    const $cat = $('#category-select').empty().append(`<option value="">All Categories</option>`);
+    Array.from(catMap.entries())
+        .sort((a, b) => a[1].localeCompare(b[1]))
+        .forEach(([id, name]) => {
+            $cat.append(`<option value="${id}">${name}</option>`);
+        });
 }
 
 function webLoad() {
@@ -666,6 +706,38 @@ function webLoad() {
         us.forEach(usersUpdate);
     }
 
-}//end webload
+let CategoryInit = 0;
+let StockistInit = 0;
+
+function webLoad() {
+    categoryTmp.forEach((cat) => { sideContentUpdate('categories', cat) });
+    StockistTmp.forEach((stock) => { sideContentUpdate('stockist', stock) });
+
+    ajaxRequest({type: "GetAllProducts"}).then((response) => {
+        console.log("API Response:", response);
+        fetchedProducts = response.data.products.slice();
+        initBrandDropdown(fetchedProducts);
+        initCategoryDropdown(fetchedProducts);
+        
+        return ajaxRequest({
+            type: "Users",
+            apikey: sessionStorage.getItem('apikey'),
+            operation: "Get"
+        });
+    }).then((response) => {
+        console.log("API Response:", response);
+        if (response.status && response.data) {
+            fetchedUsers = response.data.slice();
+            fetchedUsers.forEach(usersUpdate);
+        }
+    }).catch((error) => {
+        console.error("Error:", error);
+    }).finally(() => {
+        $('#bar').off('input').on('input', applyAdminFilters);
+        $('#brand-select, #category-select, #sort-select')
+            .off('change')
+            .on('change', applyAdminFilters);
+    });
+}
 
 $(document).ready(webLoad);
