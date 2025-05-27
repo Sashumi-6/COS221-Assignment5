@@ -33,6 +33,7 @@ function loadProducts() {
     .done(response => {
       if (response.status === "success" && response.data?.products) {
         originalProducts = response.data.products.slice();  // keep a copy
+        initBrandDropdown(originalProducts);
         renderProducts(originalProducts);
       } else {
         console.error("Failed to load products:", response);
@@ -44,12 +45,20 @@ function loadProducts() {
     });
 }
 
+function initBrandDropdown(products) {
+  const brandSet = new Set(products.map(p => p.brand).filter(b => b));
+  const sel = $('#brand-select').empty().append(`<option value="">All Brands</option>`);
+  Array.from(brandSet).sort().forEach(b => {
+    sel.append(`<option value="${b}">${b}</option>`);
+  });
+}
+
 function loadCategories() {
   ajaxRequest({ type: "Categories", operation: "Get", apikey: "22e8ff82400fff" })
     .done(response => {
       if (response.status === "success" && Array.isArray(response.data)) {
         categoryTree = response.data;
-        const $catContainer = $('#categories-container').empty();
+        const $catContainer = $('#categories-container');
         renderCategoryTree(categoryTree, $catContainer);
 
         // Add the “Clear Category” button, hidden initially
@@ -166,7 +175,4 @@ function renderProducts(products) {
     `);
   });
 
-  // repopulate brand dropdown
-  const sel = $('#brand-select').empty().append(`<option value="">All Brands</option>`);
-  Array.from(brandSet).sort().forEach(b => sel.append(`<option>${b}</option>`));
 }
