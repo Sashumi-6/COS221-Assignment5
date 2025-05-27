@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Coda:wght@400;800&family=Roboto:ital,wdth,wght@0,75..100,100..900;1,75..100,100..900&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="../../admin/admin.css">
+    <link rel="stylesheet" href="../../global/styles.css">
+    <link rel="stylesheet" href="review.css">
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <script src="admin.js"></script>
+
+    <script src="review.js"></script>
+
+    <title>[Review]</title>
+
+</head>
+
+<body>
+    <div id="user-top-bar" class="roboto-normal">
+        <div id="filter-options-container">
+            <a class="component">Alphabetical</a>
+            <a class="component">Category</a>
+            <a class="component">Brand</a>
+        </div>
+    </div>
+    <div class="split-container">
+        <div class="split-left">
+            <div class="scroll-wrapper">
+                <h1>Write a Review</h1>
+                <div class="product-card">
+                    <div class="product-image">
+                        <img src="https://cdn.shopify.com/s/files/1/0533/2089/files/placeholder-images-image_large.png?v=1530129081"
+                            alt="Product Image">
+                    </div>
+                    <div class="product-details">
+                        <h2 class="product-title">Product Name</h2>
+                        <p class="product-price">$9.99</p>
+                        <p class="product-description">This is a brief description of the product.</p>
+                    </div>
+                </div>
+                <h2>Provide Your Rating</h2>
+                <div class="reviewcontainer">
+                    <div class="post">
+                        <div class="text">Thank you for rating this product!</div>
+                        <div class="edit">EDIT</div>
+                    </div>
+                    <div class="star-widget">
+                        <input type="radio" name="rate" id="rate-5">
+                        <label for="rate-5" class="fas fa-star"></label>
+                        <input type="radio" name="rate" id="rate-4">
+                        <label for="rate-4" class="fas fa-star"></label>
+                        <input type="radio" name="rate" id="rate-3">
+                        <label for="rate-3" class="fas fa-star"></label>
+                        <input type="radio" name="rate" id="rate-2">
+                        <label for="rate-2" class="fas fa-star"></label>
+                        <input type="radio" name="rate" id="rate-1">
+                        <label for="rate-1" class="fas fa-star"></label>
+                        <input type="radio" name="rate" id="rate-6">
+                        <label for="rate-6" class="fas fa-star"></label>
+                        <input type="radio" name="rate" id="rate-7">
+                        <label for="rate-7" class="fas fa-star"></label>
+                        <input type="radio" name="rate" id="rate-8">
+                        <label for="rate-8" class="fas fa-star"></label>
+                        <input type="radio" name="rate" id="rate-9">
+                        <label for="rate-9" class="fas fa-star"></label>
+                        <input type="radio" name="rate" id="rate-10">
+                        <label for="rate-10" class="fas fa-star"></label>
+                        <form action="#">
+                            <header></header>
+                            <div class="nametextarea">
+                                <textarea cols="30" placeholder="Provide your name"></textarea>
+                            </div>
+                            <div class="textarea">
+                                <textarea cols="30" placeholder="Describe your experience.."></textarea>
+                            </div>
+                            <div class="btn">
+                                <button type="submit">Submit</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                <script>
+                    const btn = document.querySelector("button");
+                    const post = document.querySelector(".post");
+                    const widget = document.querySelector(".star-widget");
+                    const editBtn = document.querySelector(".edit");
+                    btn.onclick = () => {
+                        widget.style.display = "none";
+                        post.style.display = "block";
+                        editBtn.onclick = () => {
+                            widget.style.display = "block";
+                            post.style.display = "none";
+                        }
+                        return false;
+                    }
+                </script>
+                </p>
+                <!-- More content can be added here -->
+            </div>
+        </div>
+        <div class="split-right">
+            <div class="scroll-wrapper">
+                <h1>All Reviews</h1>
+                <span class="heading">User Rating</span>
+                <span class="fa fa-star checked"></span>
+                <span class="fa fa-star checked"></span>
+                <span class="fa fa-star checked"></span>
+                <span class="fa fa-star checked"></span>
+                <span class="fa fa-star"></span>
+                <p>4.1 average based on 254 reviews.</p>
+                <hr style="border:3px solid #f1f1f1">
+
+                <div class="row">
+                    <div class="side">
+                        <div>5 star</div>
+                    </div>
+                    <div class="middle">
+                        <div class="bar-container">
+                            <div class="bar-5"></div>
+                        </div>
+                    </div>
+                    <div class="side right">
+                        <div>150</div>
+                    </div>
+                    <div class="side">
+                        <div>4 star</div>
+                    </div>
+                    <div class="middle">
+                        <div class="bar-container">
+                            <div class="bar-4"></div>
+                        </div>
+                    </div>
+                    <div class="side right">
+                        <div>63</div>
+                    </div>
+                    <div class="side">
+                        <div>3 star</div>
+                    </div>
+                    <div class="middle">
+                        <div class="bar-container">
+                            <div class="bar-3"></div>
+                        </div>
+                    </div>
+                    <div class="side right">
+                        <div>15</div>
+                    </div>
+                    <div class="side">
+                        <div>2 star</div>
+                    </div>
+                    <div class="middle">
+                        <div class="bar-container">
+                            <div class="bar-2"></div>
+                        </div>
+                    </div>
+                    <div class="side right">
+                        <div>6</div>
+                    </div>
+                    <div class="side">
+                        <div>1 star</div>
+                    </div>
+                    <div class="middle">
+                        <div class="bar-container">
+                            <div class="bar-1"></div>
+                        </div>
+                    </div>
+                    <div class="side right">
+                        <div>20</div>
+                    </div>
+                </div>
+
+                <div class="container">
+                    <img src="bandmember.jpg" alt="Score" style="width:90px">
+                    <p><span>Chris Fox.</span> CEO at Mighty Schools.</p>
+                    <p>John Doe saved us from a web disaster.</p>
+                </div>
+                <div class="container">
+                    <img src="bandmember.jpg" alt="Avatar" style="width:90px">
+                    <p><span>Chris Fox.</span> CEO at Mighty Schools.</p>
+                    <p>John Doe saved us from a web disaster.</p>
+                </div>
+                <div class="container">
+                    <img src="bandmember.jpg" alt="Avatar" style="width:90px">
+                    <p><span>Chris Fox.</span> CEO at Mighty Schools.</p>
+                    <p>John Doe saved us from a web disaster.</p>
+                </div>
+                <div class="container">
+                    <img src="bandmember.jpg" alt="Avatar" style="width:90px">
+                    <p><span>Chris Fox.</span> CEO at Mighty Schools.</p>
+                    <p>John Doe saved us from a web disaster.</p>
+                    
+                <!-- </div>
+                <div class="container">
+                    <img src="bandmember.jpg" alt="Avatar" style="width:90px">
+                    <p><span>Chris Fox.</span> CEO at Mighty Schools.</p>
+                    <p>John Doe saved us from a web disaster.</p>
+                </div> -->
+
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>
