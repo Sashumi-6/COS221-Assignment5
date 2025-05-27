@@ -14,32 +14,67 @@
         How filtering (sorting) works:
         only 1 filter can be active at a time
 */
+
 function productsUpdate(data) {
+    // Extract category information
+    const categoryDisplay = data.category ? 
+        `${data.category.category_name} (${data.category.parent_category})` : 
+        'No category';
+    
+    // Extract supplier information
+    const supplierDisplay = data.supplier ? 
+        data.supplier.supplier_name : 
+        'No supplier';
+    
     let del_btn = $(`<div class="buttons"><button>Delete</button></div>`);
     let main = $(`
         <div class="product" id="upc-${data.upc}">
             <a>${data.upc}</a>
-            <a>${data.name}</a>
+            <a>${data.product_name}</a>
             <a>${data.description}</a>
-            <a>${data.category}</a>
+            <a>${categoryDisplay}</a>
             <a>${data.brand}</a>
-            <a>${data.supplier}</a>
+            <a>${supplierDisplay}</a>
         </div>
-        `).append(del_btn);
+    `).append(del_btn);
+    
     $('#products-container').append(main);
 }
 
+// 
+// 
+                // "upc": 1001,
+                // "product_name": "XPhone 12-2",
+                // "description": "Latest smartphone with advanced camera features and more survival stuff",
+                // "dimensions": "6.0 x 2.8 x 0.35 inches",
+                // "img_url": "phone1.jpg",
+                // "brand": "TechMaster",
+                // "supplier": {
+                //     "supplier_id": 1,
+                //     "supplier_name": "TechGadgets International",
+                //     "contact_info": "support@techgadgets-new.com"
+                // },
+                // "category": {
+                //     "category_id": 20,
+                //     "category_name": "Feature Phones",
+                //     "parent_category": "Phones"
+                // }
+
 function usersUpdate(data) {
+    // Handle null full_name case
+    const fullName = data.full_name || 'Not provided';
+    
     let del_btn = $(`<div class="buttons"><button>Delete</button></div>`);
     let main = $(`
-        <div class="user" id="userid-${data.id}">
-            <a>${data.id}</a>
+        <div class="user" id="userid-${data.user_id}">
+            <a>${data.user_id}</a>
             <a>${data.username}</a>
-            <a>${data.fullName}</a>
+            <a>${fullName}</a>
             <a>${data.email}</a>
             <a>${data.user_type}</a>
         </div>
-        `).append(del_btn);
+    `).append(del_btn);
+    
     $('#users-container').append(main);
 }
 
@@ -145,6 +180,21 @@ function sideContent_add_del(event) {
 var categoryTmp = ["Category1", "Category2", "Category3", "Category4", "Category5", "Category6"]
 var StockistTmp = ["Stockist1", "Stockist2", "Stockist3", "Stockist4", "Stockist5", "Stockist6"]
 
+function ajaxRequest(input) {
+        let username = "u24845061", password = "Carbon123";
+        let settings = {
+            url: "https://wheatley.cs.up.ac.za/u24845061/COS221APITesting/api.php",
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": "Basic " + btoa(username + ":" + password)
+            },
+            data: JSON.stringify(input),
+        };
+
+        return $.ajax(settings);
+    }
+
 let products = [
     {
         upc: "0001",
@@ -214,13 +264,59 @@ let users = [
 // Initiliser varibles
 let CategoryInit = 0;
 let StockistInit = 0;
+
 function webLoad() {
     //Load side content
     categoryTmp.forEach((cat) => { sideContentUpdate('categories', cat) });
     StockistTmp.forEach((stock) => { sideContentUpdate('stockist', stock) });
 
-    products.forEach((prod) => { productsUpdate(prod) });
-    users.forEach((user) => { usersUpdate(user) });
+    ajaxRequest({
+    type: "GetAllProducts"
+    // apikey: userApiKey
+}).then((response) => {
+    console.log("API Response:", response); // For debugging
+    
+    if (response.status && response.data && response.data.products) {
+        // Access the products array correctly
+        response.data.products.forEach((product) => {
+            productsUpdate(product);
+        });
+    } else {
+        console.error("Failed to fetch products:", response.data);
+        // Display error message to user
+        $('#products-container').append('<div class="error">No products found or error loading products</div>');
+    }
+}).catch((error) => {
+    console.error("Error fetching products:", error);
+    // Display error message to user
+    $('#products-container').append('<div class="error">Error connecting to server</div>');
+});
+
+// "ba5b8ea60cf673"
+
+ajaxRequest({
+    type: "Users",
+    apikey: sessionStorage.getItem('apikey'),
+    operation: "Get"
+    
+}).then((response) => {
+    console.log("API Response:", response); // For debugging
+    
+    if (response.status && response.data) {
+        // The data is directly the array of users (no nested 'users' property)
+        response.data.forEach((user) => {
+            usersUpdate(user);
+        });
+    } else {
+        console.error("Failed to fetch users:", response.data);
+        $('#users-container').append('<div class="error">No users found or error loading users</div>');
+    }
+}).catch((error) => {
+    console.error("Error fetching users:", error);
+    $('#users-container').append('<div class="error">Error connecting to server</div>');
+});
+    // products.forEach((prod) => { productsUpdate(prod) });
+    // users.forEach((user) => { usersUpdate(user) });
 }
 
 $(document).ready(webLoad);
