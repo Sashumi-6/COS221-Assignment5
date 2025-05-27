@@ -1,7 +1,9 @@
+// TODO get rid of all unneccesary console.log
+
 // Assume the product ID is in the URL as a query
 // Change the .get('productID') with whatever we decide to name the parameter
 const urlParams = new URLSearchParams(window.location.search);
-const product_id = urlParams.get('productID');
+const product_id = urlParams.get('upc');
 
 function ajaxRequest(input) {
     let username = "u24845061", password = "Carbon123";
@@ -19,94 +21,44 @@ function ajaxRequest(input) {
 }
 function onfail(jqXHR, status, err) { console.log(status + ": " + err) }
 
-let tmp = {
-    name: "Product Name",
-    desc: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.",
-    categories: [
-        {
-            id: 1,
-            name: "Category1"
-        },
-        {
-            id: 2,
-            name: "Category2"
-        },
-        {
-            id: 3,
-            name: "Category3"
-        },
-        {
-            id: 4,
-            name: "Category4"
-        }
-    ],
-    brand: "Generic Brand",
-    dimensions: "21cm x 42cm",
-    img: "https://dummyjson.com/image/500/teal",
-    supps: [
-        {
-            id: 1,
-            name: "supplier1",
-            price: "R100"
-        },
-        {
-            id: 2,
-            name: "supplier2",
-            price: "R200"
-        },
-        {
-            id: 3,
-            name: "supplier3",
-            price: "R300"
-        },
-        {
-            id: 4,
-            name: "supplier4",
-            price: "R400"
-        },
-        {
-            id: 5,
-            name: "supplier5",
-            price: "R500"
-        }
-    ]
-}
 function loadProductDetails(data) {
     // obv pass thru data from the ajax call then use that rather than the tmp data ive defined
+    console.log(data);
     let product = $(`
             <div id="product-image">
-                <img src="${tmp.img}" alt="Product_image">
+                <img src="${data.image_url}" alt="Product_image">
             </div>
             <div id="product-data">
-                <a style="font-size: 1.4em;">${tmp.name}</a>
-                <a id="product-description">${tmp.desc}</a>
+                <a style="font-size: 1.4em;">${data.product_name}</a>
+                <a id="product-description">${data.description}</a>
                 <div id="categories-container"></div>
-                <a>${tmp.brand}</a>
-                <a style="font-size: 0.9em;">${tmp.dimensions}</a>
+                <a>${data.brand}</a>
+                <a style="font-size: 0.9em;">${data.dimensions}</a>
             </div>
         `);
     
     //setting categories
     let categories = product.find('#categories-container');
-    tmp.categories.forEach((category) => { categories.append(`<a>${category.name}</a>`) });
+    // TODO We only get the categories name and its parent. for now okay but eventuall get the hiearchy :p
+    categories.append(`<a>${data.category.category_name}</a>`);
+    categories.append(`<a>${data.category.parent_category}</a>`);
 
     //adding to body
     $('#product-details-container').append(product);
 
     //data will have supplier details - pass suppliers and prices
-    loadSuppliers(tmp.supps);
+    loadSuppliers(data.supplier);
 }
 
 function loadSuppliers(data) {
-    data.forEach((supplier) => {
-        $('#prices-container')
-        .append(`
-            <div class="price-supplier-container">
-                <a>${supplier.name}</a>
-                <a>${supplier.price}</a>
-            </div>
-        `);
-    });
+    // TODO what if multiple categories..?
+    $('#prices-container')
+    .append(`
+        <div class="price-supplier-container">
+            <a>${supplier.name}</a>
+            <a>${supplier.price}</a>
+        </div>
+    `);
 }
 
 function loadReviewDetails() {
@@ -128,6 +80,7 @@ function loadReviewDetails() {
 }
 function starRatingClick(event) {
     let currentClick = event.data;
+    $('#user-rating').text(currentClick);
 
     if ($(this).hasClass('checked')) {
         //we will for each star greater than this, remove the class 'checked' if it has it
@@ -145,27 +98,33 @@ function starRatingClick(event) {
 }
 
 function webload() {
+    $('iframe').attr('src', `../user/review/review.html?upc=${product_id || "null"}`);
+
     $('button#clear').click(() => {
         $('textarea#review-content').val('');
     });
     
     $('button#submit').click(() => {
         let review = $('textarea#review-content').val();
-        //TODO add functionality
-        if (review != '') console.log(review);
+        let rating = $('user-rating').text();
+        if (review != '') {
+            // ajaxRequest({
+            // TODO
+            // }).then(() => {  }, onfail);
+        }
     });
 
 
     //temp data just to prove ajax works
     // .then() we can set stuff there as in global data gets and stuff
+    let product_id_tmp = 1001; //for now itll be this.
     ajaxRequest({
-        type: "Login",
-        username: "genericOperator",
-        password: "operator123"
-    }).then((resp) => { console.log(resp) }, onfail);
-
-    loadProductDetails();
-    loadReviewDetails();
+        type: "GetAllProducts",
+        upc: product_id_tmp
+    }).then((resp) => {
+        loadProductDetails(resp.data.products[0]);
+        loadReviewDetails(resp.data.products[0]);
+    }, onfail);
 }
 
 $(document).ready(webload);
