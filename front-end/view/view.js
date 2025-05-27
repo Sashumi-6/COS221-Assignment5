@@ -51,39 +51,40 @@ function loadProductDetails(data) {
 
     //data will have supplier details - pass suppliers and prices
     
-    loadSuppliers(data.supplier);
+    loadSuppliers();
 }
 
-
-
-function loadSuppliers(suppliers) {
-    
-    $('#prices-container').empty();
+function getOfffers(){
    
-    if (Array.isArray(suppliers)) {
-     
-        suppliers.forEach(supplier => {
-            $('#prices-container').append(`
-                <div class="price-supplier-container" id="supplier-${supplier.supplier_id}">
-                    <a>${supplier.supplier_name}</a>
-                    <a>${supplier.contact_info || 'Contact not available'}</a>
-                    <a>$${supplier.price || 'Price not available'}</a>
-                </div>
-            `);
-        });
-    } else if (suppliers) {
+}
+
+function loadSuppliers() {
+    ajaxRequest({
+        type: "GetOffers",
+        apikey: "def456uvw",
+        upc: product_id
+    }).then((resp) => {
+        console.log(resp);
         
-        $('#prices-container').append(`
-            <div class="price-supplier-container" id="supplier-${suppliers.supplier_id}">
-                <a>${suppliers.supplier_name}</a>
-                <a>${suppliers.contact_info || 'Contact not available'}</a>
-                <a>$${suppliers.price || 'Price not available'}</a>
-            </div>
-        `);
-    } else {
-        console.error("No supplier data received");
-        $('#prices-container').append('<p>No supplier information available</p>');
-    }
+        
+        $('#prices-container').empty();
+        
+        
+        if (resp && resp.data && Array.isArray(resp.data)) {
+            
+            resp.data.forEach(offer => {
+                $('#prices-container').append(`
+                    <div class="price-supplier-container" id="offer-${offer.offer_id}">
+                        <a>${offer.retailer_name}</a>
+                        <a>R${offer.price.toFixed(2)}</a>
+                    </div>
+                `);
+            });
+        } else {
+            console.error("No valid offer data received");
+            $('#prices-container').append('<p>No pricing information available</p>');
+        }
+    }, onfail);
 }
 
 function loadReviewDetails() {
