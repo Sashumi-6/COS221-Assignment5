@@ -1,9 +1,9 @@
 <?php
 class Database {
     private $host = 'wheatley.cs.up.ac.za';
-    private $username = 'u24658198';
-    private $password = 'CHPVX4DFIS3NYQX3S2FWYONZNWG7YUMS';
-    private $database = 'u24658198_';
+    private $username = '';
+    private $password = '';
+    private $database = '';
     private $conn;
 
     public static function connect(){
