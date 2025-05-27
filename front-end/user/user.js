@@ -159,7 +159,7 @@ function renderProducts(products) {
   products.forEach(p => {
     brandSet.add(p.brand);
     container.append(`
-      <div class="product-card">
+      <div class="product-card data-upc="${p.upc}"">
         <div class="product-image">
           <img src="${p.img_url || 'https://cdn.shopify.com/s/files/1/0533/2089/files/placeholder-images-image_large.png?v=1530129081'}" alt="">
         </div>
@@ -168,7 +168,9 @@ function renderProducts(products) {
           <p class="product-description">${p.description || 'No description.'}</p>
           <p class="product-category">Category: ${p.category.category_name}</p>
           <div class="userbuttons userbuttons-classic">
-            <button class="compare">Compare</button>
+            <a href="../view/view.html?upc=${p.upc}">
+              <button class="compare">Compare</button>
+            </a>
           </div>
         </div>
       </div>
