@@ -31,7 +31,7 @@ function loadReviewsForSpecificProduct() {
         
         resp.data.forEach(rev => {
             let stars = "";
-           
+            
             for (let i = 0; i < parseInt(rev.rating); i++) {
                 stars += "⭐";
             }
