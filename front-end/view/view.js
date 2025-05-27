@@ -2,8 +2,6 @@
 
 // Assume the product ID is in the URL as a query
 // Change the .get('productID') with whatever we decide to name the parameter
-const urlParams = new URLSearchParams(window.location.search);
-const product_id = urlParams.get('upc');
 
 function ajaxRequest(input) {
     let username = "u24845061", password = "Carbon123";
