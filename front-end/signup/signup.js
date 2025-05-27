@@ -54,6 +54,7 @@ function submitForm(){
         username: document.getElementById('username-input').value.trim(),
         email: document.getElementById('email-input').value.trim(),
         password: document.getElementById('password-input').value,
+        //TODO resolve uuser type setting
         user_type: document.getElementById('user-selector').value
     };
     //TODO add api address
