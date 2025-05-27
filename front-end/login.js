@@ -25,38 +25,32 @@ $(document).ready(function () {
             password: password
         };
 
-        $.ajax({
-            //TODO replace with actual api url
-            url: 'https://your-api-endpoint.com/api.php',
-            type: 'POST',
-            data: JSON.stringify(requestData),
-            contentType: 'application/json',
-            success: function (response) {
+        ajaxRequest(requestData)
+            .done(function (response) {
                 if (response.status) {
-                    // Save API key and user type to sessionStorage
                     sessionStorage.setItem('apikey', response.message.apikey);
                     sessionStorage.setItem('userType', response.message.userType);
 
-
-                    // Redirect based on user type
+                    // Redirect based on userType
                     if (response.message.userType === 'Admin') {
                         window.location.href = 'admin/admin.html';
                     } else {
                         window.location.href = 'user/user.html';
-                    } 
+                    }
                 } else {
                     alert(response.message || 'Login failed.');
                 }
-            },
-            error: function (xhr) {
+            })
+            .fail(function (xhr) {
                 if (xhr.status === 401) {
                     alert('Invalid username or password.');
                 } else {
                     alert('An error occurred during login.');
                 }
-            }
-        });
-    });
+            });
+
+
+    });//end login button clicked func
 
     function isValidPassword(password) {
         const minLength = 8;
@@ -74,4 +68,18 @@ $(document).ready(function () {
         );
     }
 
+    function ajaxRequest(input) {
+        let username = "u24845061", password = "Carbon123 ";
+        let settings = {
+            url: "https://wheatley.cs.up.ac.za/u24772756/HA/api.php",
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": "Basic " + btoa(username + ":" + password)
+            },
+            data: JSON.stringify(input),
+        };
+
+        return $.ajax(settings);
+    }
 });

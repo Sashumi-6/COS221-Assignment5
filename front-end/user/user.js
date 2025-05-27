@@ -1,4 +1,4 @@
-const apiUrl = "https://wheatley.cs.up.ac.za/u24676111/api.php";
+const apiUrl = "https://wheatley.cs.up.ac.za/u24845061/COS221APITesting/api.php";
 const apikey = sessionStorage.getItem("apikey");
 let allProductsCache = [];
 $(document).ready(() => {
@@ -14,28 +14,37 @@ $(document).ready(() => {
 function loadProducts(filters = {}) {
     const requestData = {
         type: "GetAllProducts",
-        apikey,
+        apikey:"a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6",
         ...filters
     };
 
-    $.ajax({
+    ajaxRequest(requestData)
+    .done((response) => {
+        if (response.status) {
+            renderProducts(response.message.products);
+        } else {
+            $('.container').html("<p>No products found.</p>");
+        }
+    })
+    .fail(() => {
+        $('.container').html("<p>Failed to load products.</p>");
+    });
+
+}
+function ajaxRequest(input) {
+    let username = "u24845061", password = "Carbon123";
+    let settings = {
         url: apiUrl,
         method: "POST",
-        contentType: "application/json",
-        data: JSON.stringify(requestData),
-        success: (response) => {
-            if (response.status) {
-                renderProducts(response.message.products);
-            } else {
-                $('.container').html("<p>No products found.</p>");
-            }
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": "Basic " + btoa(username + ":" + password)
         },
-        error: () => {
-            $('.container').html("<p>Failed to load products.</p>");
-        }
-    });
-}
+        data: JSON.stringify(input),
+    };
 
+    return $.ajax(settings);
+}
 function renderProducts(products) {
     allProductsCache = products;
     const container = $(".container");
@@ -76,17 +85,22 @@ function updateBrandDropdown(brands) {
 }
 
 function loadCategories() {
-    $.ajax({
-        url: apiUrl,
-        method: "POST",
-        contentType: "application/json",
-        data: JSON.stringify({ type: "Categories", Operation: "Get", apikey }),
-        success: (response) => {
-            if (response.status && Array.isArray(response.message)) {
-                const categoryTree = buildCategoryTree(response.message);
-                renderCategoryTree(categoryTree);
-            }
+    const requestData = {
+        type: "Categories",
+        apikey // Make sure this variable is valid and consistent
+    };
+
+    ajaxRequest(requestData)
+    .done((response) => {
+        if (response.status && Array.isArray(response.message)) {
+            const categoryTree = buildCategoryTree(response.message);
+            renderCategoryTree(categoryTree);
+        } else {
+            console.error("Failed to load categories: Invalid response format", response);
         }
+    })
+    .fail((jqXHR, textStatus, errorThrown) => {
+        console.error("AJAX error while loading categories:", textStatus, errorThrown);
     });
 }
 
