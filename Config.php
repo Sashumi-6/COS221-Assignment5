@@ -567,13 +567,15 @@ class Database {
      * Gets the reviews for a specific product based on the upc
      * returns the commenter's username, the rating, supplier name 
      * and review 
+     * **********CHANGE HERE***************
      */
     public function getAllReviews($upc){
+        // **********CHANGE HERE***************
         $query = "SELECT r.review, r.rating, 
-        u.username, s.supplier_name
+        u.username, re.retailer_name
         FROM reviews r JOIN users u 
-        ON u.user_id = r.user_id JOIN suppliers s
-        ON s.supplier_id = r.supplier_id WHERE r.upc = ?";
+        ON u.user_id = r.user_id JOIN retailers re
+        ON re.retailer_id = r.retailer_id WHERE r.upc = ?";
 
         $stmt = $this->prepare($query);
         $stmt->bind_param('i', $upc);
@@ -609,28 +611,32 @@ class Database {
     /*
      * Adds the reviews and then
      * returns the new review details
+     * **********CHANGE HERE***************
      */
-    public function addReview($upc, $supplierId, $userId, $review, $rating){
-        $stmt = $this->prepare("INSERT INTO reviews (upc, supplier_id, user_id, review, rating)
+    public function addReview($upc, $retailerId, $userId, $review, $rating){
+        // **********CHANGE HERE***************
+        $stmt = $this->prepare("INSERT INTO reviews (upc, retailer_id, user_id, review, rating)
         values (?,?,?,?,?)");
-
-        $stmt->bind_param('iiisi', $upc, $supplierId, $userId, $review, $rating);
+        
+        // **********CHANGE HERE***************
+        $stmt->bind_param('iiisi', $upc, $retailerId, $userId, $review, $rating);
         
         if (!$stmt->execute()) {
             error_log("Execute error: " . $stmt->error);
             throw new Exception("Could not add review to the database");        
         }
         
+        // **********CHANGE HERE***************
         // get this review
         $query = "SELECT r.review, r.rating, 
-        u.username, s.supplier_name
+        u.username, re.retailer_name
         FROM reviews r JOIN users u 
-        ON u.user_id = r.user_id JOIN suppliers s
-        ON s.supplier_id = r.supplier_id WHERE r.upc = ? 
-        AND r.supplier_id = ? AND r.user_id = ?";
+        ON u.user_id = r.user_id JOIN retailers re
+        ON re.retailer_id = r.retailer_id WHERE r.upc = ? 
+        AND re.retailer_id = ? AND r.user_id = ?";
 
         $stmt = $this->prepare($query);
-        $stmt->bind_param('iii', $upc, $supplierId, $userId);
+        $stmt->bind_param('iii', $upc, $retailerId, $userId);
 
         if (!$stmt->execute()) {
             error_log("Execute error: " . $stmt->error);
@@ -642,19 +648,10 @@ class Database {
 
     }
 
-    /*
-     * gets supplier by their name..., to make coding easier on the api end
+    /**
+     * 
+     * REMOVED GET SUPPLIER
      */
-    public function getSupplier($supName){
-        $query = "SELECT * FROM suppliers WHERE supplier_name = ?";
-        $sqlQuery = $this->prepare($query);
-        $sqlQuery->bind_param('s', $supName);
-        $sqlQuery->execute();
-        $result = $sqlQuery->get_result();
-        
-
-        return $result->fetch_assoc();
-    }
 
     public function getAllSuppliers(){
         $query = "SELECT * FROM suppliers";

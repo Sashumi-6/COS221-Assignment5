@@ -539,7 +539,7 @@
                 try{
                     $upc = $input['upc'];
                     $userId = $dbConn->getUser($input['username'])['user_id'];
-                    $supId = $dbConn->getSupplier($input['supplier_name'])['supplier_id'];
+                    $supId = $dbConn->getRetailer($input['retailer_name'])['retailer_id'];
                     $review = null;
                     $input['review'] = filter_var($input['review'], FILTER_SANITIZE_FULL_SPECIAL_CHARS);
                     if(isMalicious($input['review'])){
