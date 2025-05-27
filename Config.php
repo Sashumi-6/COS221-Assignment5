@@ -340,17 +340,7 @@ class Database {
 
     }
 
-// public function getAllSuppliers() {
-//     $query = "SELECT supplier_id, supplier_name, contact_info FROM suppliers";
-//     $stmt = $this->prepare($query);
-//     if ($stmt->execute()) {
-//         $result = $stmt->get_result();
-//         return $result->fetch_all(MYSQLI_ASSOC);
-//     } else {
-//         throw new Exception("Couldn't retrieve suppliers from database.");
-//     }
-// }
-/**
+    /**
      * add a new supplier
      */
     public function addSupplier($name, $contactInfo) {
@@ -413,7 +403,7 @@ class Database {
      * add a new product
      */
 
-     public function updateSupplier($supplierId, $name, $contactInfo) {
+    public function updateSupplier($supplierId, $name, $contactInfo) {
         $query = "UPDATE suppliers SET supplier_name = ?, contact_info = ? WHERE supplier_id = ?";
         $stmt = $this->prepare($query);
         $stmt->bind_param('ssi', $name, $contactInfo, $supplierId);
@@ -590,7 +580,7 @@ class Database {
         
         if (!$stmt->execute()) {
             error_log("Execute error: " . $stmt->error);
-            throw new Exception("Could not add user to the database");        
+            throw new Exception("Could not add review to the database");        
         }
         
         // get this review
@@ -606,7 +596,7 @@ class Database {
 
         if (!$stmt->execute()) {
             error_log("Execute error: " . $stmt->error);
-            throw new Exception("Could not retrieve the review");        
+            throw new Exception("Could not retrieve the new review");        
         }
 
         $result = $stmt->get_result();
@@ -642,11 +632,106 @@ class Database {
         }
     }
 
+    public function getOffers($upc){
+        $query = "SELECT o.offer_id, o.retailer_id, 
+        r.retailer_name, o.price
+        FROM offers o JOIN retailers r
+        ON o.retailer_id = r.retailer_id
+        WHERE upc=?";
+
+        $stmt = $this->prepare($query);
+        $stmt->bind_param('i', $upc);
+        
+        if($stmt->execute()){
+            $result = $stmt->get_result();
+            return $result->fetch_all(MYSQLI_ASSOC);
+        }
+        else{
+            error_log("Execute error: " . $stmt->error);
+            throw new Exception("Couldn't retrieve data from database.");
+        }
+    }
+
+    public function getRetailer($name){
+        $query = "SELECT * FROM retailers WHERE retailer_name = ?";
+        $sqlQuery = $this->prepare($query);
+        $sqlQuery->bind_param('s', $name);
+        $sqlQuery->execute();
+        $result = $sqlQuery->get_result();
+        
+
+        return $result->fetch_assoc();
+    }
+
+    public function addOffer($upc, $ret_id, $price, $count, $dTime, $shipFee){
+        $stmt = $this->prepare("INSERT INTO offers (upc, retailer_id, 
+        price,stock_count, delivery_time,shipping_fee) 
+        values (?,?,?,?,?,?)");
+
+        $stmt->bind_param('iidisd', $upc, $ret_id, $price, $count, $dTime, $shipFee);
+        
+        if (!$stmt->execute()) {
+            error_log("Execute error: " . $stmt->error);
+            throw new Exception("Could not add offer to the database");        
+        }
+        
+        // get this review
+        $query = "SELECT o.offer_id, o.retailer_id, 
+        r.retailer_name, o.price
+        FROM offers o JOIN retailers r
+        ON o.retailer_id = r.retailer_id
+        WHERE upc=? ORDER BY o.offer_id DESC LIMIT 1";
+
+        $stmt = $this->prepare($query);
+        $stmt->bind_param('i', $upc);
+
+        if (!$stmt->execute()) {
+            error_log("Execute error: " . $stmt->error);
+            throw new Exception("Could not retrieve the new offer");        
+        }
+
+        $result = $stmt->get_result();
+        return $result->fetch_assoc();
+    }
+
+    public function updateOffer($newVal, $field, $upc, $ret_id){
+        $query = "UPDATE offers SET ";
+        $types = '';
+        switch($field){
+            case "price":
+                $query .= "price=?";
+                $types .= "d";
+                break;
+            case "stock_count":
+                $query .= "stock_count=?";
+                $types .= "i";
+                break;
+            case "delivery_time":
+                $query .= "delivery_time=?";
+                $types .= "s";
+                break;
+            case "shipping_fee":
+                $query .= "shipping_fee=?";
+                $types .= "d";
+                break;
+        }
+
+        $query .= " WHERE upc=? AND retailer_id=?";
+
+        $stmt = $this->prepare($query);
+        $types .= "ii";
+        $stmt->bind_param($types, $newVal, $upc, $ret_id);
+
+        if(!$stmt->execute()){
+            error_log("Execute error: " . $stmt->error);
+            throw new Exception("Couldn't remove category from database.");
+        }
+    }
+
     public function close() {
         $this->conn->close();
     }
     
-
     public function error() {
         return $this->conn->error;
     }
