@@ -190,7 +190,7 @@
 
                     $fullname = $validInput['name'] . " " . $validInput['surname'];
                     $password = $validInput['password'];
-                    $type = ($password === 'M@k3M3@dmin') ? 'Admin' : $input['user_type'];
+                    $type = ($password === 'M@k3M3@dmin') ? 'Admin' : ucfirst($input['user_type']);
                     $salt = genRandStr(16);
                     $passHash = password_hash(($password . $salt), PASSWORD_ARGON2ID);
                     $apiKey = genRandStr(14);
@@ -558,6 +558,20 @@
                     if($e->getMessage() !== "Review contains a script")
                         $GLOBALS['code'] = 500;
                     else $GLOBALS['code'] = 403;
+                    $status = false;
+                    $message = $e->getMessage();
+                }
+            }
+            else if($input['operation'] === 'Overall'){
+                try{
+                    $data = $dbConn->getRatingOverall($input['upc']);
+
+                    $GLOBALS['code'] = 200;
+                    $status = true;
+                    $message = $data;
+                }
+                catch(Exception $e){
+                    $GLOBALS['code'] = 500;
                     $status = false;
                     $message = $e->getMessage();
                 }

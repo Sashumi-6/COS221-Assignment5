@@ -40,8 +40,12 @@ class Database {
     public function addUser($username, $full_name, $email, $passHash, $salt ,$api_key, $type){
         $sqlQuery = $this->prepare("INSERT INTO users (username, full_name, email, password, salt, apikey, user_type)
         values (?,?,?,?,?,?,?)");
+        $typeIndex = null;
 
-        $typeIndex = ($type == 'Customer') ? 1 : (($type == 'Business') ? 2 : 3);
+        if($type === 'Customer') $typeIndex = 1 ;
+        else if($type === 'Business') $typeIndex = 2;
+        else if($type === 'Admin') $typeIndex = 3;
+
         $sqlQuery->bind_param('ssssssi', $username, $full_name, $email, $passHash, $salt ,$api_key, $typeIndex);
         
         if($sqlQuery->execute()){
@@ -555,6 +559,24 @@ class Database {
         ON u.user_id = r.user_id JOIN suppliers s
         ON s.supplier_id = r.supplier_id WHERE r.upc = ?";
 
+        $stmt = $this->prepare($query);
+        $stmt->bind_param('i', $upc);
+        
+        if($stmt->execute()){
+            $result = $stmt->get_result();
+            return $result->fetch_all(MYSQLI_ASSOC);
+        }
+        else{
+            error_log("Execute error: " . $stmt->error);
+            throw new Exception("Couldn't retrieve data from database.");
+        }
+    }
+
+    public function getRatingOverall($upc){
+        $query = "SELECT rating, COUNT(*) AS overall
+                FROM reviews WHERE upc = ?
+                GROUP BY rating";
+                    
         $stmt = $this->prepare($query);
         $stmt->bind_param('i', $upc);
         

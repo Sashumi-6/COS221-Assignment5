@@ -46,9 +46,9 @@ For security and practicality, the apikey, salt and password is not returned
 Reviews api endpoint:
 {
     type : Reviews,
-    operation : Get/Add,
+    operation : Get/Add/Overall,
     apikey: A user's key (any user registered can review),
-    upc : must be specified if using the Add, Get operation
+    upc : must be specified if using the Add, Get and Overall operation
     rating : must be specified for add,
     review : must be specified for add,
     username : must be specified for add,
