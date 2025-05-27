@@ -4,6 +4,174 @@ username: u24845061
 passwword: Carbon123
 ## u24845061 Ntuthuko, u24676412 Njabulo Integration Team
 
+Products api endpoint:
+Getting Prodcuts:
+NB - No api key is required for any of the get product calls, but the delete and update will require api key
+GetAllProdcuts:
+example input
+{
+    "type": "GetAllProducts"
+}
+
+example output:
+{
+    "status": "success",
+    "timestamp": 1748349662,
+    "data": {
+        "count": 199,
+        "products": [
+            {
+                "upc": 1001,
+                "product_name": "XPhone 12-2",
+                "description": "Latest smartphone with advanced camera features and more survival stuff",
+                "dimensions": "6.0 x 2.8 x 0.35 inches",
+                "img_url": "phone1.jpg",
+                "brand": "TechMaster",
+                "supplier": {
+                    "supplier_id": 1,
+                    "supplier_name": "TechGadgets International",
+                    "contact_info": "support@techgadgets-new.com"
+                },
+                "category": {
+                    "category_id": 20,
+                    "category_name": "Feature Phones",
+                    "parent_category": "Phones"
+                }
+            }, etc.. will repeat for each product in the table
+}
+
+for other cases, being filtering or searching for specific products, you will literally just add parameter of which you want to search for, and it 
+should fetch all things related, i.e
+
+example input:
+{
+    "type": "GetAllProducts",
+    "upc": 1001
+
+}
+{
+    "status": "success",
+    "timestamp": 1748362489,
+    "data": {
+        "count": 1,
+        "products": [
+            {
+                "upc": 1001,
+                "product_name": "XPhone 12-2",
+                "description": "Latest smartphone with advanced camera features and more survival stuff",
+                "dimensions": "6.0 x 2.8 x 0.35 inches",
+                "img_url": "phone1.jpg",
+                "brand": "TechMaster",
+                "supplier": {
+                    "supplier_id": 1,
+                    "supplier_name": "TechGadgets International",
+                    "contact_info": "support@techgadgets-new.com"
+                },
+                "category": {
+                    "category_id": 20,
+                    "category_name": "Feature Phones",
+                    "parent_category": "Phones"
+                }
+            }
+        ]
+    }
+}
+
+example input:
+{
+    "type": "GetAllProducts",
+    "brand": "TechMaster"
+
+}
+
+example output:
+{
+    "status": "success",
+    "timestamp": 1748362531,
+    "data": {
+        "count": 3,
+        "products": [
+            {
+                "upc": 1001,
+                "product_name": "XPhone 12-2",
+                "description": "Latest smartphone with advanced camera features and more survival stuff",
+                "dimensions": "6.0 x 2.8 x 0.35 inches",
+                "img_url": "phone1.jpg",
+                "brand": "TechMaster",
+                "supplier": {
+                    "supplier_id": 1,
+                    "supplier_name": "TechGadgets International",
+                    "contact_info": "support@techgadgets-new.com"
+                },
+                "category": {
+                    "category_id": 20,
+                    "category_name": "Feature Phones",
+                    "parent_category": "Phones"
+                }
+            },
+            {
+                "upc": 1002,
+                "product_name": "UltraBook Pro",
+                "description": "High-performance laptop with 16GB RAM",
+                "dimensions": "12.3 x 8.8 x 0.6 inches",
+                "img_url": "laptop1.jpg",
+                "brand": "TechMaster",
+                "supplier": {
+                    "supplier_id": 1,
+                    "supplier_name": "TechGadgets International",
+                    "contact_info": "support@techgadgets-new.com"
+                },
+                "category": {
+                    "category_id": 23,
+                    "category_name": "Ultrabooks",
+                    "parent_category": "Laptops"
+                }
+            },
+            {
+                "upc": 8001,
+                "product_name": "HealthTrack Pro",
+                "description": "Smartwatch with health monitoring",
+                "dimensions": "1.8 x 1.5 x 0.5 inches",
+                "img_url": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSeLSYqzl69Ov8nL3UC0QlZ3HTB7JDCdaD84A&s",
+                "brand": "TechMaster",
+                "supplier": {
+                    "supplier_id": 1,
+                    "supplier_name": "TechGadgets International",
+                    "contact_info": "support@techgadgets-new.com"
+                },
+                "category": {
+                    "category_id": 18,
+                    "category_name": "Wearables",
+                    "parent_category": "Electronics"
+                }
+            }
+        ]
+    }
+}
+
+
+
+Retailer api endpoint:
+
+Updating Retailer:
+example input:
+{
+  "type": "UpdateProduct",
+  "upc": 1001,
+  "brand": "TechMaster",
+  "dimensions": "6.0 x 2.8 x 0.35 inches",
+  "product_name": "XPhone 12-2",
+  "category_id": "20",
+  "desc": "Latest smartphone with advanced camera features and more survival stuff"
+}
+example output:
+{
+    "status": "success",
+    "timestamp": 1748360422,
+    "data": "Product updated successfully"
+}
+
+
 Categories api endpoint:
 {
     type: Categories,
