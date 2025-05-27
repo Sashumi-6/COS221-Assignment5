@@ -29,6 +29,29 @@ function loadTopProducts() {
     });
 }
 
+function renderProducts(products) {
+  const container = $('.products-container');
+  container.empty();
+  
+  if (products.length === 0) {
+    container.html('<p>No products found.</p>');
+    return;
+  }
+  
+  products.forEach(product => {
+    const fiveStarCount = product.ratings 
+      ? product.ratings.filter(r => r.value === 5).length
+      : 0;
+    
+    container.append(`
+      <div class="product-card">
+        <h3>${product.name}</h3>
+        <p>${fiveStarCount} five-star ratings</p>
+        <!-- other product details -->
+      </div>
+    `);
+  });
+}
 
 $(document).ready(() => {
 
