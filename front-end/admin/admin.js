@@ -15,6 +15,158 @@
         only 1 filter can be active at a time
 */
 
+
+
+// Unified search function
+$(document).ready(function() {
+    console.log('Document ready'); // Debug log
+    
+    // Search button click handler
+    $('#search-button').click(function() {
+        console.log('Search button clicked'); // Debug log
+        const searchTerm = $('#search-bar').val().trim();
+        console.log('Search term:', searchTerm); // Debug log
+        if (searchTerm) {
+            performSearch(searchTerm);
+        } else {
+            // If empty search, show all items
+            performSearch('');
+        }
+    });
+
+    // Enter key press handler
+    $('#search-bar').keypress(function(e) {
+        if (e.which === 13) { // Enter key
+            console.log('Enter key pressed'); // Debug log
+            const searchTerm = $(this).val().trim();
+            console.log('Search term:', searchTerm); // Debug log
+            if (searchTerm) {
+                performSearch(searchTerm);
+            } else {
+                // If empty search, show all items
+                performSearch('');
+            }
+        }
+    });
+
+    // Initial load - show all products and users
+    performSearch('');
+});
+
+function performSearch(searchTerm) {
+    console.log('Starting search with term:', searchTerm);
+    
+    // Show loading state
+    $('#products-container').addClass('loading');
+    $('#users-container').addClass('loading');
+    
+    // Clear previous results but keep headers
+    $('#products-container .product').not('#heading').remove();
+    $('#users-container .user').remove();
+    
+    // Product search request
+    const productRequest = ajaxRequest({
+        type: "GetAllProducts",
+        apikey: sessionStorage.getItem('apikey'),
+        product_name: searchTerm
+    });
+
+    // User search request
+    const userRequest = ajaxRequest({
+        type: "Users",
+        operation: "Get",
+        apikey: sessionStorage.getItem('apikey'),
+        search: searchTerm
+    });
+
+    Promise.all([productRequest, userRequest])
+        .then(([productsResponse, usersResponse]) => {
+            // Create a document fragment to hold products temporarily
+            const productsFragment = document.createDocumentFragment();
+            
+            // Process products
+            if (productsResponse.status) {
+                const products = Array.isArray(productsResponse.data) 
+                    ? productsResponse.data 
+                    : (productsResponse.data.products || []);
+                
+                // Create product elements in correct order
+                products.forEach(product => {
+                    const categoryDisplay = product.category ? 
+                        `${product.category.category_name} (${product.category.parent_category})` : 
+                        'No category';
+                    
+                    const supplierDisplay = product.supplier ? 
+                        product.supplier.supplier_name : 
+                        'No supplier';
+                    
+                    const delBtn = $(`<button class="delete-btn">Delete</button>`);
+                    const productDiv = $(`
+                        <div class="product" id="upc-${product.upc}">
+                            <a>${product.upc}</a>
+                            <a>${product.product_name}</a>
+                            <a>${product.description}</a>
+                            <a>${categoryDisplay}</a>
+                            <a>${product.brand}</a>
+                            <a>${supplierDisplay}</a>
+                        </div>
+                    `).append(delBtn);
+                    
+                    // Add to fragment (maintains order)
+                    productsFragment.appendChild(productDiv[0]);
+                });
+                
+                // Insert all products after the heading
+                $('#products-container #heading').after(productsFragment);
+            }
+            
+            // Process users
+            if (usersResponse.status && usersResponse.data) {
+                usersResponse.data.forEach(user => {
+                    const fullName = user.full_name || 'Not provided';
+                    const delBtn = $(`<button class="delete-btn">Delete</button>`);
+                    const userDiv = $(`
+                        <div class="user" id="userid-${user.user_id}">
+                            <a>${user.user_id}</a>
+                            <a>${user.username}</a>
+                            <a>${fullName}</a>
+                            <a>${user.email}</a>
+                            <a>${user.user_type}</a>
+                        </div>
+                    `).append(delBtn);
+                    
+                    $('#users-container').append(userDiv);
+                });
+            }
+        })
+        .catch(error => {
+            console.error('Search error:', error);
+            $('#products-container').append('<div class="error">Search failed</div>');
+        })
+        .finally(() => {
+            $('#products-container').removeClass('loading');
+            $('#users-container').removeClass('loading');
+        });
+}
+
+// Initial load remains the same
+// $(document).ready(function() {
+//     // Event listeners unchanged
+//     $('#search-button').click(function() {
+//         performSearch($('#search-bar').val().trim());
+//     });
+
+//     $('#search-bar').keypress(function(e) {
+//         if (e.which === 13) performSearch($(this).val().trim());
+//     });
+
+//     // Initial load
+//     performSearch('');
+// });
+
+// Initial load (show all products and users)
+// handleSearch('');
+
 function productsUpdate(data) {
     // Extract category information
     const categoryDisplay = data.category ? 
@@ -270,27 +422,27 @@ function webLoad() {
     categoryTmp.forEach((cat) => { sideContentUpdate('categories', cat) });
     StockistTmp.forEach((stock) => { sideContentUpdate('stockist', stock) });
 
-    ajaxRequest({
-    type: "GetAllProducts"
-    // apikey: userApiKey
-}).then((response) => {
-    console.log("API Response:", response); // For debugging
+//     ajaxRequest({
+//     type: "GetAllProducts"
+//     // apikey: userApiKey
+// }).then((response) => {
+//     console.log("API Response:", response); // For debugging
     
-    if (response.status && response.data && response.data.products) {
-        // Access the products array correctly
-        response.data.products.forEach((product) => {
-            productsUpdate(product);
-        });
-    } else {
-        console.error("Failed to fetch products:", response.data);
-        // Display error message to user
-        $('#products-container').append('<div class="error">No products found or error loading products</div>');
-    }
-}).catch((error) => {
-    console.error("Error fetching products:", error);
-    // Display error message to user
-    $('#products-container').append('<div class="error">Error connecting to server</div>');
-});
+//     if (response.status && response.data && response.data.products) {
+//         // Access the products array correctly
+//         response.data.products.forEach((product) => {
+//             productsUpdate(product);
+//         });
+//     } else {
+//         console.error("Failed to fetch products:", response.data);
+//         // Display error message to user
+//         $('#products-container').append('<div class="error">No products found or error loading products</div>');
+//     }
+// }).catch((error) => {
+//     console.error("Error fetching products:", error);
+//     // Display error message to user
+//     $('#products-container').append('<div class="error">Error connecting to server</div>');
+// });
 
 // "ba5b8ea60cf673"
 
