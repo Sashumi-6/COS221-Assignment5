@@ -97,19 +97,6 @@ html, body {
   color: #666;
 }
 
-.credit a {
-  text-decoration: none;
-  color: #000;
-  font-weight: 800;
-}
-
-.credit {
-    color: #000;
-  text-align: center;
-  margin-top: 10px;
-  font-family: Verdana,Geneva,Tahoma,sans-serif;
-}
-
 #userbuttons {
     display: flex;
     gap: 4em;
@@ -211,4 +198,11 @@ html, body {
 
 #filter-options-container select.component:hover {
   background-color: #e3dada;
+}
+
+.product-category {
+  font-size: 1rem;
+  line-height: 1.5;
+  margin-bottom: 10px;
+  color: #000; /* black text */
 }
