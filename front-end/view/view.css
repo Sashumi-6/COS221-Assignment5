@@ -16,24 +16,16 @@ body {
     justify-content: space-evenly;
     align-items: stretch;
     gap: 1em;
-    margin: 1em 0px;
-    padding: 0.3em;
+    margin: 2em 0px;
 }
 
 #product-image {
-    display: flex;
-    flex: 1 0 auto;
-    justify-content: center;
-    align-items: center;
-    width: 480px;
-    height: 480px;
-    background-color: #66615e57;
-    border-radius: 10px;
+    flex: 0 0 auto;
 }
 
 img {
     display: block;
-    max-height: 450px;
+    max-width: 450px;
     max-width: 450px;
 }
 
@@ -48,9 +40,13 @@ img {
     border-radius: 10px;
 }
 
-/* #product-description {
-    Maybe the paragraph doesn't display descriptions nicely - use this to fix
-} */
+#product-description {
+    /* 
+    TODO
+    Long descriptions might not display correct - if they dont,
+    the css to fix that should go here
+    */
+}
 
 #categories-container {
     display: flex;
@@ -93,7 +89,7 @@ img {
     display: flex;
     align-items: stretch;
     padding: 1em;
-    margin: 1em 0em;
+    margin: 2em 0em;
     gap: 1em;
     width: 100%;
     color: #F2F0EF;
@@ -110,10 +106,7 @@ img {
 }
 
 .numeric-rating {
-    display: flex;
-    width: 2em;
-    justify-content: center;
-    align-items: center;
+    width: 50%;
     padding: 0em 0.5em;
 }
 
@@ -145,15 +138,6 @@ img {
 
 #make-review textarea {
     margin: 1.3em 0.5em;
-    font-family: "Roboto", sans-serif;
-    border: #66615E 4px solid;
-    border-radius: 4px;
-    resize: none;
-    padding: 0.5em;
-}
-
-#make-review textarea:focus-visible {
-    outline: none;
 }
 
 #review-rating {
@@ -173,14 +157,6 @@ img {
     color: orange;
 }
 
-#review-rating span:not(.active) {
-    transform: scale(1);
-}
-
-#review-rating span.active {
-    transform: scale(1.5);
-}
-
 #review-rating span:not(.checked) {
     color: black;
 }
@@ -189,40 +165,18 @@ img {
     background-color: rgba(255, 165, 0, 0.3);
 }
 
-#review-btn-container {
-    display: flex;
-    justify-content: space-evenly;
-}
+/* TODO add styling */
+#review-rating button {
 
-#review-btn-container button {
-    width: 35%;
-    padding: 0.5em 1em;
-    color: #F2F0EF;
-    background-color: #66615E;
-    border: #949392 2px solid;
-    border-radius: 8px;
-    transition: 0.25s;
-    font-weight: bold;
-    letter-spacing: 1px;
-}
-
-#review-btn-container button:hover {
-    box-shadow: inset 0px 0px 2px 2px #3B3B3B;
-    cursor: pointer;
-}
-
-#review-btn-container button:active {
-    background-color: #3B3B3B;
-    transform: translateY(1px);
-    box-shadow: inset 0px 0px 2px 2px #66615E;
 }
 
 /* TODO change sizing of both iframe and iframe-container depending */
 #frame-container {
     display: flex;
-    flex: 1 0 auto;
+    flex: 1;
     flex-direction: column;
-    max-width: 80;
+    max-width: 50%;
+    max-height: fit-content;
     background-color: #66615e57;
     border-radius: 10px;
     padding: 1em;
@@ -230,8 +184,5 @@ img {
 
 iframe {
     width: 100%;
-    height: 100%;
-    border: #66615E 4px solid;
-    border-radius: 10px;
-    align-self: center;
+    overflow: hidden;
 }
