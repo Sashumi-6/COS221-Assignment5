@@ -70,7 +70,7 @@ Reviews api endpoint:
     rating : must be specified for add,
     review : must be specified for add,
     username : must be specified for add,
-    supplier_name : must be specified for add
+    retailer_name : must be specified for add
 
 }
 
@@ -79,7 +79,7 @@ returned by Add/Get operation:
     username of commentor,
     rating,
     review,
-    supplier_name
+    retailer_name
 }
 
 Add will return specifically the new review (this will allow for real time 
