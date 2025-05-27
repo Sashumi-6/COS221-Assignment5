@@ -387,7 +387,15 @@ function loadStockists(){
         apikey : sessionStorage.getItem('apikey')
     };
     ajaxRequest(input)
-    .done()
+    .done(response => {
+        if(response.status){
+            
+        }
+        else{
+            alert(response.data || 'Retrieval of retailers failed.');
+        }
+
+    })
     .fail((jqXHR, textStatus, errorThrown) => {
         console.log(jqXHR.responseText);
         console.error("AJAX error while loading categories:", textStatus, errorThrown);
@@ -404,52 +412,52 @@ function webLoad() {
     StockistTmp.forEach((stock) => { sideContentUpdate('stockist', stock) });
 
     ajaxRequest({
-    type: "GetAllProducts"
-    // apikey: userApiKey
-}).then((response) => {
-    console.log("API Response:", response); // For debugging
-    
-    if (response.status && response.data && response.data.products) {
-        // Access the products array correctly
-        response.data.products.forEach((product) => {
-            productsUpdate(product);
-        });
-    } else {
-        console.error("Failed to fetch products:", response.data);
+        type: "GetAllProducts"
+        // apikey: userApiKey
+    }).then((response) => {
+        console.log("API Response:", response); // For debugging
+        
+        if (response.status && response.data && response.data.products) {
+            // Access the products array correctly
+            response.data.products.forEach((product) => {
+                productsUpdate(product);
+            });
+        } else {
+            console.error("Failed to fetch products:", response.data);
+            // Display error message to user
+            $('#products-container').append('<div class="error">No products found or error loading products</div>');
+        }
+    }).catch((error) => {
+        console.error("Error fetching products:", error);
         // Display error message to user
-        $('#products-container').append('<div class="error">No products found or error loading products</div>');
-    }
-}).catch((error) => {
-    console.error("Error fetching products:", error);
-    // Display error message to user
-    $('#products-container').append('<div class="error">Error connecting to server</div>');
-});
+        $('#products-container').append('<div class="error">Error connecting to server</div>');
+    });
 
-// "ba5b8ea60cf673"
+    // "ba5b8ea60cf673"
 
-ajaxRequest({
-    type: "Users",
-    apikey: sessionStorage.getItem('apikey'),
-    operation: "Get"
-    
-}).then((response) => {
-    console.log("API Response:", response); // For debugging
-    
-    if (response.status && response.data) {
-        // The data is directly the array of users (no nested 'users' property)
-        response.data.forEach((user) => {
-            usersUpdate(user);
-        });
-    } else {
-        console.error("Failed to fetch users:", response.data);
-        $('#users-container').append('<div class="error">No users found or error loading users</div>');
-    }
-}).catch((error) => {
-    console.error("Error fetching users:", error);
-    $('#users-container').append('<div class="error">Error connecting to server</div>');
-});
-    // products.forEach((prod) => { productsUpdate(prod) });
-    // users.forEach((user) => { usersUpdate(user) });
+    ajaxRequest({
+        type: "Users",
+        apikey: sessionStorage.getItem('apikey'),
+        operation: "Get"
+        
+    }).then((response) => {
+        console.log("API Response:", response); // For debugging
+        
+        if (response.status && response.data) {
+            // The data is directly the array of users (no nested 'users' property)
+            response.data.forEach((user) => {
+                usersUpdate(user);
+            });
+        } else {
+            console.error("Failed to fetch users:", response.data);
+            $('#users-container').append('<div class="error">No users found or error loading users</div>');
+        }
+    }).catch((error) => {
+        console.error("Error fetching users:", error);
+        $('#users-container').append('<div class="error">Error connecting to server</div>');
+    });
+        // products.forEach((prod) => { productsUpdate(prod) });
+        // users.forEach((user) => { usersUpdate(user) });
 }
 
 $(document).ready(webLoad);
