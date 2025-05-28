@@ -1,0 +1,16 @@
+OFF WHITE : backgrounds
+#F2F0EF
+#C9C8C7
+#949392
+#66615E
+
+CHARCOAL : font colours
+#A1A1A1
+#4A4A4A
+#3B3B3B
+#1A1A1A
+
+// TO ADD STYLES:
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Coda:wght@400;800&family=Roboto:ital,wdth,wght@0,75..100,100..900;1,75..100,100..900&display=swap" rel="stylesheet">

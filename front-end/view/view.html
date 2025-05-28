@@ -1,0 +1,54 @@
+<!-- Assume that the product ID is passed thru the URL -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Coda:wght@400;800&family=Roboto:ital,wdth,wght@0,75..100,100..900;1,75..100,100..900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="../global/styles.css">
+    <link rel="stylesheet" href="view.css">
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <script src="view.js"></script>
+
+    <title>[Product View]</title>
+</head>
+<body>
+    <div id="view-container">
+        <div id="product-details-container"></div>
+
+        <!-- This container holds the prices and the stockists -->
+        <div id="prices-container"></div>
+
+        <div id="review-container">
+            <div id="overall-review">
+                <a id="title">Overall</a>
+            </div>
+
+            <div id="make-review">
+                <a id="title">Review this item</a>
+                <div id="review-rating">
+                    <a style="display: none;" id="user-rating">1</a>
+                </div>
+                <textarea id="review-content" name="review-area" rows="8" cols="50" placeholder="Write something here..."></textarea>
+                <div id="review-btn-container">
+                    <button id="submit">Submit</button>
+                    <button id="clear">Clear</button>
+                </div>
+            </div>
+
+            <!-- The src will be dynamic and pass thru the product id to get that products reviews -->
+            <div id="frame-container">
+                <a id="title">What others say</a>
+                <iframe src="../user/review/review.html" title="Product Reviews"></iframe>
+                
+
+            </div>
+        </div>
+    </div>
+</body>
+</html>
