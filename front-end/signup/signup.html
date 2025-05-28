@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Coda:wght@400;800&family=Roboto:ital,wdth,wght@0,75..100,100..900;1,75..100,100..900&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="signup.css">
+    <link rel="stylesheet" href="../global/styles.css">
+
+    <title>[SignUp]</title>
+</head>
+<body>
+    <p id="title" class="roboto-normal">SIGNUP</p>
+    <form id="signup-container">
+        <div id="signup-options">
+            <input class="roboto-normal" autocapitalize="on" autocomplete="on" type="text" name="first-name" id="name-input" placeholder="First Name">
+            <input class="roboto-normal" autocapitalize="on" autocomplete="on" type="text" name="last-name" id="surname-input" placeholder="Last Name">
+            <input class="roboto-normal" autocomplete="on" type="text" name="username" id="username-input" placeholder="Username">
+            <input class="roboto-normal" autocomplete="on" type="email" name="email" id="email-input" placeholder="Email">
+            <input class="roboto-normal" type="password" name="password" id="password-input" placeholder="Password">
+            <select class="roboto-normal" name="user-type" id="user-selector" required>
+                <option value="">Default</option>
+                <option value="Customer">Customer</option>
+                <option value="Business">Business</option>
+            </select>
+        </div>
+        <!-- <h1 id="cust_label">Select user type</h1> USER SELECTS THEIR TYPE USING DROP DOWN BRUH don't bring this back lmao
+          <div id="cust_types">
+                <button class="roboto-normal buttons buttons-classic" id="business">Business</button>
+                <button class="roboto-normal buttons buttons-classic" id="customer">Customer</button>
+           </div>-->
+
+        <div id="buttons">
+            <button type="submit" class="roboto-normal buttons buttons-classic" id="signup-button">Sign Up</button>
+            <button type="button" class="roboto-normal buttons buttons-classic" id="goback-button">Go back</button>
+        </div> 
+        <p id="signup-error" style="color: red;"></p>
+    </form>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="signup.js" defer></script>
+</body>
+</html>

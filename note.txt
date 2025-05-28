@@ -1,0 +1,87 @@
+Functionality we need for admin are:
+- Get all categories (done)
+- Get all stockist/suppliers
+- Get all products (done)
+- Get all users (done)
+- update category (done)
+- update stokist/suppliers
+- update products (done)
+- update users
+- delete categories (done)
+- delete stockist/supplier 
+- delete product (done)
+- delete user (done)
+
+Functionality User:
+- Get all reviews
+- Add a review (because duh...)
+
+test apikey:
+customer : f986ee0fd3d677
+Admin : ba5b8ea60cf673
+Business : 
+
+Categories api endpoint:
+{
+    type: Categories,
+    operation: Add/Get/Delete/Update,
+    apikey: user apikey,
+    category_id : must be specified for Update and Delete,
+    category_name : must be specified for Add and update,
+    parent_category_name : name of this category's parent category
+}
+
+When using \Delete, specify the category id. Omit category_name.
+
+When using Add, specify name of category and it'll be added. Returned will be
+the categories id. Omit category_id. 
+ALSO if this category happens to "fall under" another 
+e.g Phones falls under Electronics, 
+included the name "Electronics" at parent_category_name
+
+When Update specify both name and id. A message shall be returned.
+
+
+User api endpoint:
+{
+    type: Users,
+    operation: Get/Delete,
+    apikey: Admin's apikey (will be verified),
+    user_id : must be specified if using the delete operation
+}
+
+returned by Get operation:
+{
+    user_id,
+    full_name,
+    username,
+    email,
+    user_type
+}
+
+For security and practicality, the apikey, salt and password is not returned
+
+Reviews api endpoint:
+{
+    type: Reviews,
+    operation: Get/Add,
+    apikey: A user's key (any user registered can review),
+    upc : must be specified if using the Add, Get operation
+    rating : must be specified for add,
+    review : must be specified for add,
+    username : must be specified for add,
+    supplier_name : must be specified for add
+
+}
+
+returned by Add/Get operation:
+{
+    username of commentor,
+    rating,
+    review,
+    supplier_name
+}
+
+Add will return specifically the new review (this will allow for real time 
+additon), whereas get will the reviews of a specific product 
+based on the UPC
